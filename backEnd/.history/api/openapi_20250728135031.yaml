@@ -1,0 +1,9 @@
+openapi: 3.0.1
+info:
+  title: MoneyPot
+  version: 1.0.0
+servers:
+- url: /
+paths: {}
+components:
+  schemas: {}
