@@ -1,0 +1,5 @@
+/config.env
+/.history
+/backEnd/error.log
+/backEnd/combined.log
+/.DS_Store
