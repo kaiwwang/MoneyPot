@@ -3,12 +3,11 @@ const logger = require('../logger');
 const AccountService = require('../services/AccountService');
 const StockDataService = require('../services/StockDataService');
 
+// 创建全局的AccountService实例
+const globalAccountService = new AccountService();
+const globalStockDataService = new StockDataService();
+
 class StockController extends Controller {
-  constructor() {
-    super();
-    this.accountService = new AccountService();
-    this.stockDataService = new StockDataService();
-  }
 
   /**
    * 获取持仓信息
@@ -17,8 +16,7 @@ class StockController extends Controller {
     try {
       logger.info('获取持仓信息');
       
-      const accountService = new AccountService();
-      const portfolio = await accountService.getPortfolio();
+      const portfolio = await globalAccountService.getPortfolio();
       
       Controller.sendResponse(response, portfolio);
     } catch (error) {
@@ -38,8 +36,7 @@ class StockController extends Controller {
       const { ticker } = request.params;
       logger.info(`获取股票持仓: ${ticker}`);
       
-      const accountService = new AccountService();
-      const holding = await accountService.getHolding(ticker);
+      const holding = await globalAccountService.getHolding(ticker);
       
       if (!holding) {
         return Controller.sendError(response, {
@@ -65,8 +62,7 @@ class StockController extends Controller {
     try {
       logger.info('获取市场股票列表');
       
-      const stockDataService = new StockDataService();
-      const stocks = await stockDataService.getAllLatestStockData();
+      const stocks = await globalStockDataService.getAllLatestStockData();
       
       Controller.sendResponse(response, { stocks });
     } catch (error) {
@@ -86,8 +82,7 @@ class StockController extends Controller {
       const { ticker } = request.params;
       logger.info(`获取股票数据: ${ticker}`);
       
-      const stockDataService = new StockDataService();
-      const stockData = await stockDataService.getLatestStockData(ticker);
+      const stockData = await globalStockDataService.getLatestStockData(ticker);
       
       if (!stockData) {
         return Controller.sendError(response, {
@@ -121,8 +116,7 @@ class StockController extends Controller {
         });
       }
       
-      const accountService = new AccountService();
-      const trade = await accountService.buyStock(ticker, quantity);
+      const trade = await globalAccountService.buyStock(ticker, quantity);
       
       Controller.sendResponse(response, {
         message: '买入成功',
@@ -152,8 +146,7 @@ class StockController extends Controller {
         });
       }
       
-      const accountService = new AccountService();
-      const trade = await accountService.sellStock(ticker, quantity);
+      const trade = await globalAccountService.sellStock(ticker, quantity);
       
       Controller.sendResponse(response, {
         message: '卖出成功',
@@ -175,8 +168,7 @@ class StockController extends Controller {
     try {
       logger.info('获取账户信息');
       
-      const accountService = new AccountService();
-      const accountInfo = await accountService.getAccountInfo();
+      const accountInfo = await globalAccountService.getAccountInfo();
       
       Controller.sendResponse(response, accountInfo);
     } catch (error) {
@@ -194,7 +186,7 @@ class StockController extends Controller {
   static async deposit(request, response) {
     try {
       const { amount } = request.body;
-      logger.info(`充值: ${amount}`);
+      logger.info(`账户充值: ${amount}`);
       
       if (!amount || amount <= 0) {
         return Controller.sendError(response, {
@@ -203,12 +195,11 @@ class StockController extends Controller {
         });
       }
       
-      const accountService = new AccountService();
-      const newBalance = accountService.deposit(amount);
+      globalAccountService.deposit(amount);
       
       Controller.sendResponse(response, {
         message: '充值成功',
-        newBalance
+        newBalance: globalAccountService.userAccount.currentBalance
       });
     } catch (error) {
       logger.error('充值失败:', error);
@@ -220,20 +211,19 @@ class StockController extends Controller {
   }
 
   /**
-   * 获取可买入的最大数量
+   * 获取最大买入数量
    */
   static async getMaxBuyQuantity(request, response) {
     try {
       const { ticker } = request.params;
       logger.info(`获取最大买入数量: ${ticker}`);
       
-      const accountService = new AccountService();
-      const maxQuantity = await accountService.getMaxBuyQuantity(ticker);
+      const maxQuantity = await globalAccountService.getMaxBuyQuantity(ticker);
       
       Controller.sendResponse(response, {
         ticker,
         maxQuantity,
-        currentBalance: accountService.userAccount.currentBalance
+        currentBalance: globalAccountService.userAccount.currentBalance
       });
     } catch (error) {
       logger.error('获取最大买入数量失败:', error);
