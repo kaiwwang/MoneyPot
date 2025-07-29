@@ -1,0 +1,372 @@
+openapi: 3.0.1
+info:
+  title: 股票管理系统
+  version: 1.0.0
+  description: 股票管理API接口
+servers:
+- url: /
+paths:
+  # 持仓相关接口
+  /api/portfolio:
+    get:
+      summary: 获取持仓信息
+      description: 获取用户当前持仓的所有股票信息
+      operationId: getPortfolio
+      tags:
+        - 持仓管理
+      responses:
+        '200':
+          description: 成功获取持仓信息
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  holdings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Holding'
+                  totalValue:
+                    type: number
+                    description: 持仓总价值
+                  totalProfit:
+                    type: number
+                    description: 总盈亏
+  /api/portfolio/{ticker}:
+    get:
+      summary: 获取特定股票持仓
+      description: 获取指定股票的持仓信息
+      operationId: getHolding
+      tags:
+        - 持仓管理
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 股票代码
+      responses:
+        '200':
+          description: 成功获取持仓信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Holding'
+        '404':
+          description: 股票未持仓
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "股票未持仓"
+
+  # 市场相关接口
+  /api/market:
+    get:
+      summary: 获取市场股票列表
+      description: 获取所有可交易的股票信息
+      operationId: getMarketStocks
+      tags:
+        - 市场数据
+      responses:
+        '200':
+          description: 成功获取市场数据
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stocks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Stock'
+  /api/market/{ticker}:
+    get:
+      summary: 获取特定股票市场数据
+      description: 获取指定股票的当前市场数据
+      operationId: getStockData
+      tags:
+        - 市场数据
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 股票代码
+      responses:
+        '200':
+          description: 成功获取股票数据
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stock'
+        '404':
+          description: 股票不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "股票不存在"
+
+  # 交易相关接口
+  /api/trade/buy:
+    post:
+      summary: 买入股票
+      description: 执行买入股票操作
+      operationId: buyStock
+      tags:
+        - 交易操作
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - quantity
+              properties:
+                ticker:
+                  type: string
+                  description: 股票代码
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: 买入数量
+      responses:
+        '200':
+          description: 买入成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "买入成功"
+                  trade:
+                    $ref: '#/components/schemas/Trade'
+        '400':
+          description: 买入失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "余额不足或参数错误"
+
+  /api/trade/sell:
+    post:
+      summary: 卖出股票
+      description: 执行卖出股票操作
+      operationId: sellStock
+      tags:
+        - 交易操作
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ticker
+                - quantity
+              properties:
+                ticker:
+                  type: string
+                  description: 股票代码
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: 卖出数量
+      responses:
+        '200':
+          description: 卖出成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "卖出成功"
+                  trade:
+                    $ref: '#/components/schemas/Trade'
+        '400':
+          description: 卖出失败
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "持仓不足或参数错误"
+
+  # 个人账户相关接口
+  /api/account:
+    get:
+      summary: 获取账户信息
+      description: 获取用户账户信息，包括现金余额、总资产等
+      operationId: getAccount
+      tags:
+        - 账户管理
+      responses:
+        '200':
+          description: 成功获取账户信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+
+  /api/account/deposit:
+    post:
+      summary: 充值
+      description: 向账户充值现金
+      operationId: deposit
+      tags:
+        - 账户管理
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  minimum: 0.01
+                  description: 充值金额
+      responses:
+        '200':
+          description: 充值成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "充值成功"
+                  newBalance:
+                    type: number
+                    description: 新的账户余额
+
+components:
+  schemas:
+    Holding:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: 股票代码
+        name:
+          type: string
+          description: 股票名称
+        quantity:
+          type: integer
+          description: 持股数量
+        costPrice:
+          type: number
+          description: 成本价
+        currentPrice:
+          type: number
+          description: 现价
+        totalCost:
+          type: number
+          description: 总成本
+        currentValue:
+          type: number
+          description: 当前价值
+        profit:
+          type: number
+          description: 盈亏
+        profitPercentage:
+          type: number
+          description: 盈亏百分比
+    Stock:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: 股票代码
+        name:
+          type: string
+          description: 股票名称
+        currentPrice:
+          type: number
+          description: 现价
+        high:
+          type: number
+          description: 今日最高价
+        low:
+          type: number
+          description: 今日最低价
+        open:
+          type: number
+          description: 开盘价
+        volume:
+          type: number
+          description: 成交量
+        change:
+          type: number
+          description: 涨跌幅
+        changePercentage:
+          type: number
+          description: 涨跌百分比
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 交易ID
+        ticker:
+          type: string
+          description: 股票代码
+        type:
+          type: string
+          enum: [buy, sell]
+          description: 交易类型
+        quantity:
+          type: integer
+          description: 交易数量
+        price:
+          type: number
+          description: 交易价格
+        totalAmount:
+          type: number
+          description: 交易总额
+        timestamp:
+          type: string
+          format: date-time
+          description: 交易时间
+    Account:
+      type: object
+      properties:
+        initialBalance:
+          type: number
+          description: 初始金额
+        currentBalance:
+          type: number
+          description: 当前现金余额
+        totalAssets:
+          type: number
+          description: 总资产（现金+股票）
+        totalProfit:
+          type: number
+          description: 总盈亏
+        profitPercentage:
+          type: number
+          description: 总盈亏百分比

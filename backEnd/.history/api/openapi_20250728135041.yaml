@@ -1,0 +1,96 @@
+openapi: 3.0.1
+info:
+  title: MoneyPot
+  version: 1.0.0
+  description: API测试接口
+servers:
+- url: /
+paths:
+  /api/test:
+    get:
+      summary: 测试GET接口
+      description: 用于测试API连接的GET接口
+      operationId: testGet
+      tags:
+        - 测试接口
+      responses:
+        '200':
+          description: 成功响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "API测试成功"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  method:
+                    type: string
+                    example: "GET"
+                  status:
+                    type: string
+                    example: "success"
+  /api/test/post:
+    post:
+      summary: 测试POST接口
+      description: 用于测试API数据提交的POST接口
+      operationId: testPost
+      tags:
+        - 测试接口
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 用户名称
+                  example: "测试用户"
+                message:
+                  type: string
+                  description: 测试消息
+                  example: "这是一条测试消息"
+                data:
+                  type: object
+                  description: 任意数据
+                  example: {"key": "value"}
+      responses:
+        '200':
+          description: 成功响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "数据接收成功"
+                  receivedData:
+                    type: object
+                    description: 接收到的数据
+                  timestamp:
+                    type: string
+                    format: date-time
+                  method:
+                    type: string
+                    example: "POST"
+                  status:
+                    type: string
+                    example: "success"
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "请求数据无效"
+components:
+  schemas: {}
