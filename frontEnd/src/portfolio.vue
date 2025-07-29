@@ -7,10 +7,14 @@
           v-for="tab in tabs" 
           :key="tab.id"
           :class="['tab-button', { active: activeTab === tab.id }]"
-          @click="activeTab = tab.id"
+          @click.stop="switchTab(tab.id)"
         >
           {{ tab.name }}
         </button>
+        <!-- Debug info -->
+        <span style="margin-left: 20px; color: #666; font-size: 0.8rem;">
+          Current: {{ activeTab }}
+        </span>
       </div>
       <div class="nav-right">
         <span v-if="loading" class="loading-indicator">🔄 加载中...</span>
@@ -28,21 +32,21 @@
         <div class="portfolio-summary">
           <div class="summary-card">
             <h3>Total Assets</h3>
-            <div class="amount">€{{ userInfo.totalAssets.toLocaleString() }}</div>
-            <div class="change" :class="{ positive: userInfo.profitPercentage >= 0, negative: userInfo.profitPercentage < 0 }">
-              {{ userInfo.profitPercentage >= 0 ? '+' : '' }}{{ userInfo.profitPercentage.toFixed(2) }}%
+            <div class="amount">€{{ (userInfo.totalAssets || 0).toLocaleString() }}</div>
+            <div class="change" :class="{ positive: (userInfo.profitPercentage || 0) >= 0, negative: (userInfo.profitPercentage || 0) < 0 }">
+              {{ (userInfo.profitPercentage || 0) >= 0 ? '+' : '' }}{{ (userInfo.profitPercentage || 0).toFixed(2) }}%
             </div>
           </div>
           <div class="summary-card">
             <h3>Today's P&L</h3>
-            <div class="amount">€{{ userInfo.totalProfit.toLocaleString() }}</div>
-            <div class="change" :class="{ positive: userInfo.totalProfit >= 0, negative: userInfo.totalProfit < 0 }">
-              {{ userInfo.totalProfit >= 0 ? '+' : '' }}€{{ Math.abs(userInfo.totalProfit).toLocaleString() }}
+            <div class="amount">€{{ (userInfo.totalProfit || 0).toLocaleString() }}</div>
+            <div class="change" :class="{ positive: (userInfo.totalProfit || 0) >= 0, negative: (userInfo.totalProfit || 0) < 0 }">
+              {{ (userInfo.totalProfit || 0) >= 0 ? '+' : '' }}€{{ Math.abs(userInfo.totalProfit || 0).toLocaleString() }}
             </div>
           </div>
           <div class="summary-card">
             <h3>Holdings Value</h3>
-            <div class="amount">${{ holdingsValue.toLocaleString() }}</div>
+            <div class="amount">${{ (holdingsValue || 0).toLocaleString() }}</div>
           </div>
         </div>
 
@@ -93,14 +97,14 @@
           >
             <div class="stock-code">{{ stock.code }}</div>
             <div class="stock-name">{{ stock.name }}</div>
-            <div class="stock-price">${{ stock.currentPrice.toFixed(2) }}</div>
-            <div class="stock-change" :class="{ positive: stock.changePercent >= 0, negative: stock.changePercent < 0 }">
-              {{ stock.changePercent >= 0 ? '+' : '' }}{{ stock.changePercent.toFixed(2) }}%
+            <div class="stock-price">${{ (stock.currentPrice || 0).toFixed(2) }}</div>
+            <div class="stock-change" :class="{ positive: (stock.changePercent || 0) >= 0, negative: (stock.changePercent || 0) < 0 }">
+              {{ (stock.changePercent || 0) >= 0 ? '+' : '' }}{{ (stock.changePercent || 0).toFixed(2) }}%
             </div>
-            <div class="stock-shares">{{ stock.shares }}</div>
-            <div class="stock-value">${{ (stock.currentPrice * stock.shares).toLocaleString() }}</div>
-            <div class="stock-pnl" :class="{ positive: stock.pnl >= 0, negative: stock.pnl < 0 }">
-              {{ stock.pnl >= 0 ? '+' : '' }}${{ stock.pnl.toFixed(2) }}
+            <div class="stock-shares">{{ stock.shares || 0 }}</div>
+            <div class="stock-value">${{ ((stock.currentPrice || 0) * (stock.shares || 0)).toLocaleString() }}</div>
+            <div class="stock-pnl" :class="{ positive: (stock.pnl || 0) >= 0, negative: (stock.pnl || 0) < 0 }">
+              {{ (stock.pnl || 0) >= 0 ? '+' : '' }}${{ (stock.pnl || 0).toFixed(2) }}
             </div>
           </div>
         </div>
@@ -340,17 +344,66 @@ export default {
       userInfo: {
         id: 'U123456789',
         name: 'Portfolio User',
-        balance: 0,
+        balance: 150000,
         registerDate: '2023-01-15',
         riskLevel: 'Conservative',
-        initialBalance: 0,
-        totalAssets: 0,
-        totalProfit: 0,
-        profitPercentage: 0
+        initialBalance: 150000,
+        totalAssets: 200000,
+        totalProfit: 50000,
+        profitPercentage: 25.0
       },
-      portfolio: [],
-      availableStocks: [],
-      majorIndices: [],
+      portfolio: [
+        {
+          code: '000001',
+          name: 'Ping An Bank',
+          currentPrice: 12.85,
+          changePercent: 2.4,
+          shares: 1000,
+          costPrice: 12.50,
+          pnl: 350,
+          yearHigh: 15.40,
+          yearLow: 10.20,
+          volume: '1.2M'
+        },
+        {
+          code: '600036',
+          name: 'China Merchants Bank',
+          currentPrice: 38.45,
+          changePercent: 1.8,
+          shares: 500,
+          costPrice: 37.80,
+          pnl: 325,
+          yearHigh: 42.50,
+          yearLow: 30.80,
+          volume: '800K'
+        }
+      ],
+      availableStocks: [
+        { code: '600519', name: 'Kweichow Moutai', price: 1680.50, change: 2.3 },
+        { code: '000001', name: 'Ping An Bank', price: 12.85, change: 2.4 },
+        { code: '600036', name: 'China Merchants Bank', price: 38.45, change: 1.8 },
+        { code: '000002', name: 'China Vanke', price: 8.96, change: -1.2 }
+      ],
+      majorIndices: [
+        {
+          code: 'HSI',
+          name: 'Hang Seng Index',
+          market: 'HK',
+          symbol: '^HSI',
+          value: 17250.35,
+          changeValue: 125.40,
+          change: 0.73
+        },
+        {
+          code: 'SPX',
+          name: 'S&P 500',
+          market: 'US',
+          symbol: 'SPX',
+          value: 4450.25,
+          changeValue: -15.30,
+          change: -0.34
+        }
+      ],
       // API配置
       apiConfig: {
         alphaVantage: {
@@ -414,23 +467,23 @@ export default {
   computed: {
     totalAssets() {
       const holdingsValue = this.portfolio.reduce((sum, stock) => {
-        return sum + stock.currentPrice * stock.shares;
+        return sum + (stock.currentPrice || 0) * (stock.shares || 0);
       }, 0);
-      return this.userInfo.balance + holdingsValue;
+      return (this.userInfo.balance || 0) + holdingsValue;
     },
     holdingsValue() {
       return this.portfolio.reduce((sum, stock) => {
-        return sum + stock.currentPrice * stock.shares;
+        return sum + (stock.currentPrice || 0) * (stock.shares || 0);
       }, 0);
     },
     todayPnL() {
       return this.portfolio.reduce((sum, stock) => {
-        return sum + stock.pnl;
+        return sum + (stock.pnl || 0);
       }, 0);
     },
     totalChange() {
       const totalCost = this.portfolio.reduce((sum, stock) => {
-        return sum + stock.costPrice * stock.shares;
+        return sum + (stock.costPrice || 0) * (stock.shares || 0);
       }, 0);
       return totalCost > 0 ? ((this.holdingsValue - totalCost) / totalCost) * 100 : 0;
     },
@@ -446,6 +499,13 @@ export default {
     }
   },
   methods: {
+    // 标签页切换方法
+    switchTab(tabId) {
+      console.log('[switchTab] Switching from', this.activeTab, 'to', tabId);
+      this.activeTab = tabId;
+      console.log('[switchTab] activeTab is now:', this.activeTab);
+    },
+    
     // API数据获取方法
     async fetchAccountInfo() {
       try {
@@ -475,15 +535,15 @@ export default {
         
         // 转换后端数据格式为前端格式
         this.portfolio = data.holdings.map(holding => ({
-          code: holding.ticker,
-          name: holding.name,
-          shares: holding.quantity,
-          currentPrice: holding.currentPrice,
-          changePercent: holding.profitPercentage,
-          costPrice: holding.costPrice,
-          pnl: holding.profit,
-          yearHigh: holding.currentPrice * 1.2, // 估算年高
-          yearLow: holding.currentPrice * 0.8,  // 估算年低
+          code: holding.ticker || '',
+          name: holding.name || 'Unknown',
+          shares: Number(holding.quantity) || 0,
+          currentPrice: Number(holding.currentPrice) || 0,
+          changePercent: Number(holding.profitPercentage) || 0,
+          costPrice: Number(holding.costPrice) || 0,
+          pnl: Number(holding.profit) || 0,
+          yearHigh: Number(holding.currentPrice) * 1.2 || 0, // 估算年高
+          yearLow: Number(holding.currentPrice) * 0.8 || 0,  // 估算年低
           volume: '1.2M' // 占位符
         }))
         
@@ -502,10 +562,10 @@ export default {
         
         // 转换后端数据格式为前端格式
         this.availableStocks = data.stocks.map(stock => ({
-          code: stock.ticker,
-          name: stock.name,
-          price: stock.currentPrice,
-          change: stock.changePercentage
+          code: stock.ticker || '',
+          name: stock.name || 'Unknown',
+          price: Number(stock.currentPrice) || 0,
+          change: Number(stock.changePercentage) || 0
         }))
         
         console.log('市场数据已更新:', this.availableStocks)
