@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API集成验证</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .status-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .success { border-left: 4px solid #28a745; }
+    .error { border-left: 4px solid #dc3545; }
+    .warning { border-left: 4px solid #ffc107; }
+    
+    .data-preview {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    .integration-summary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="integration-summary">
+    <h1>🚀 API集成验证面板</h1>
+    <p>验证Vue前端是否成功连接到本地后端API</p>
+  </div>
+
+  <div id="backend-status" class="status-card">
+    <h3>🔧 后端服务器状态</h3>
+    <div id="backend-result">检查中...</div>
+  </div>
+
+  <div id="frontend-status" class="status-card">
+    <h3>🖥️ 前端应用状态</h3>
+    <div id="frontend-result">检查中...</div>
+  </div>
+
+  <div id="data-comparison" class="status-card">
+    <h3>📊 数据对比验证</h3>
+    <button onclick="compareData()">对比API数据</button>
+    <div id="comparison-result"></div>
+  </div>
+
+  <div id="live-test" class="status-card">
+    <h3>🔄 实时交易测试</h3>
+    <button onclick="testTrade()">执行测试交易</button>
+    <div id="trade-result"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api';
+    const FRONTEND_URL = 'http://localhost:5175';
+
+    // 检查后端状态
+    async function checkBackend() {
+      const statusEl = document.getElementById('backend-result');
+      try {
+        const response = await fetch(`${API_BASE}/account`);
+        const data = await response.json();
+        
+        statusEl.innerHTML = `
+          <div class="success">
+            ✅ 后端API正常运行<br>
+            账户余额: €${data.currentBalance.toLocaleString()}<br>
+            总资产: €${data.totalAssets.toLocaleString()}<br>
+            总盈利: €${data.totalProfit.toFixed(2)}
+          </div>
+        `;
+        document.getElementById('backend-status').className = 'status-card success';
+      } catch (error) {
+        statusEl.innerHTML = `
+          <div class="error">
+            ❌ 后端连接失败: ${error.message}
+          </div>
+        `;
+        document.getElementById('backend-status').className = 'status-card error';
+      }
+    }
+
+    // 检查前端状态
+    async function checkFrontend() {
+      const statusEl = document.getElementById('frontend-result');
+      try {
+        const response = await fetch(FRONTEND_URL);
+        if (response.ok) {
+          statusEl.innerHTML = `
+            <div class="success">
+              ✅ 前端应用运行正常<br>
+              地址: <a href="${FRONTEND_URL}" target="_blank">${FRONTEND_URL}</a><br>
+              状态: 已集成API数据获取
+            </div>
+          `;
+          document.getElementById('frontend-status').className = 'status-card success';
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        statusEl.innerHTML = `
+          <div class="error">
+            ❌ 前端连接失败: ${error.message}
+          </div>
+        `;
+        document.getElementById('frontend-status').className = 'status-card error';
+      }
+    }
+
+    // 对比数据
+    async function compareData() {
+      const resultEl = document.getElementById('comparison-result');
+      resultEl.innerHTML = '<div class="warning">⏳ 正在获取和对比数据...</div>';
+      
+      try {
+        // 并行获取所有API数据
+        const [account, portfolio, market] = await Promise.all([
+          fetch(`${API_BASE}/account`).then(r => r.json()),
+          fetch(`${API_BASE}/portfolio`).then(r => r.json()),
+          fetch(`${API_BASE}/market`).then(r => r.json())
+        ]);
+
+        resultEl.innerHTML = `
+          <div class="success">
+            <h4>✅ API数据获取成功</h4>
+            
+            <h5>💰 账户信息:</h5>
+            <div class="data-preview">
+余额: €${account.currentBalance.toLocaleString()}
+总资产: €${account.totalAssets.toLocaleString()}
+总盈利: €${account.totalProfit.toFixed(2)} (${account.profitPercentage.toFixed(2)}%)
+            </div>
+            
+            <h5>📊 持仓信息 (${portfolio.holdings.length}只股票):</h5>
+            <div class="data-preview">
+${portfolio.holdings.map(h => 
+`${h.ticker} (${h.name}): ${h.quantity}股
+  成本: €${h.costPrice} → 现价: €${h.currentPrice}
+  盈亏: €${h.profit.toFixed(2)} (${h.profitPercentage.toFixed(2)}%)`
+).join('\n\n')}
+            </div>
+            
+            <h5>📈 市场数据 (${market.stocks.length}只可交易股票):</h5>
+            <div class="data-preview">
+${market.stocks.map(s => 
+`${s.ticker} (${s.name}): €${s.currentPrice}
+  涨跌: ${s.change > 0 ? '+' : ''}${s.change.toFixed(3)} (${s.changePercentage.toFixed(2)}%)
+  成交量: ${s.volume.toLocaleString()}`
+).join('\n\n')}
+            </div>
+          </div>
+        `;
+        document.getElementById('data-comparison').className = 'status-card success';
+        
+      } catch (error) {
+        resultEl.innerHTML = `
+          <div class="error">
+            ❌ 数据获取失败: ${error.message}
+          </div>
+        `;
+        document.getElementById('data-comparison').className = 'status-card error';
+      }
+    }
+
+    // 测试交易
+    async function testTrade() {
+      const resultEl = document.getElementById('trade-result');
+      resultEl.innerHTML = '<div class="warning">⏳ 执行测试交易...</div>';
+      
+      try {
+        // 首先获取账户余额
+        const accountBefore = await fetch(`${API_BASE}/account`).then(r => r.json());
+        
+        // 执行小额买入测试
+        const tradeData = {
+          ticker: 'GLE FP',
+          quantity: 1
+        };
+        
+        const tradeResponse = await fetch(`${API_BASE}/trade/buy`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tradeData)
+        });
+        
+        const tradeResult = await tradeResponse.json();
+        
+        // 获取交易后的账户状态
+        const accountAfter = await fetch(`${API_BASE}/account`).then(r => r.json());
+        
+        resultEl.innerHTML = `
+          <div class="success">
+            <h4>✅ 交易测试成功</h4>
+            
+            <h5>📋 交易详情:</h5>
+            <div class="data-preview">
+股票: ${tradeResult.trade.ticker}
+类型: ${tradeResult.trade.type === 'buy' ? '买入' : '卖出'}
+数量: ${tradeResult.trade.quantity}股
+价格: €${tradeResult.trade.price}
+金额: €${tradeResult.trade.totalAmount}
+时间: ${new Date(tradeResult.trade.timestamp).toLocaleString()}
+            </div>
+            
+            <h5>💰 账户变化:</h5>
+            <div class="data-preview">
+交易前余额: €${accountBefore.currentBalance.toLocaleString()}
+交易后余额: €${accountAfter.currentBalance.toLocaleString()}
+变化: €${(accountAfter.currentBalance - accountBefore.currentBalance).toFixed(2)}
+            </div>
+          </div>
+        `;
+        document.getElementById('live-test').className = 'status-card success';
+        
+      } catch (error) {
+        resultEl.innerHTML = `
+          <div class="error">
+            ❌ 交易测试失败: ${error.message}
+          </div>
+        `;
+        document.getElementById('live-test').className = 'status-card error';
+      }
+    }
+
+    // 页面加载时自动检查状态
+    document.addEventListener('DOMContentLoaded', async () => {
+      await Promise.all([
+        checkBackend(),
+        checkFrontend()
+      ]);
+      
+      // 5秒后自动对比数据
+      setTimeout(compareData, 2000);
+    });
+
+    // 每30秒自动检查后端状态
+    setInterval(checkBackend, 30000);
+  </script>
+</body>
+</html>

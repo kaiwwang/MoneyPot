@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前端API连接测试</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .test-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .test-card h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .loading {
+      background: #e2e3e5;
+      color: #383d41;
+      border: 1px solid #d6d8db;
+    }
+    
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    pre {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: 400px;
+      margin: 20px 0;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+</head>
+<body>
+  <h1>🔗 前端API连接测试</h1>
+  <div id="connection-status" class="status loading">正在检查API连接...</div>
+  
+  <div class="test-card">
+    <h3>📊 持仓数据测试</h3>
+    <button onclick="testPortfolioAPI()">测试持仓API</button>
+    <div id="portfolio-status" class="status">点击按钮测试持仓API</div>
+    <pre id="portfolio-data">等待测试结果...</pre>
+  </div>
+  
+  <div class="test-card">
+    <h3>📈 市场数据测试</h3>
+    <button onclick="testMarketAPI()">测试市场API</button>
+    <div id="market-status" class="status">点击按钮测试市场API</div>
+    <pre id="market-data">等待测试结果...</pre>
+  </div>
+  
+  <div class="test-card">
+    <h3>📉 ECharts集成测试</h3>
+    <button onclick="testChartIntegration()">测试图表集成</button>
+    <div id="chart-status" class="status">点击按钮测试图表</div>
+    <div id="test-chart" class="chart-container"></div>
+  </div>
+  
+  <div class="test-card">
+    <h3>💹 交易功能测试</h3>
+    <button onclick="testTradeAPI()">测试交易API</button>
+    <div id="trade-status" class="status">点击按钮测试交易功能</div>
+    <pre id="trade-data">等待测试结果...</pre>
+  </div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000/api';
+    
+    // 检查API连接状态
+    async function checkAPIConnection() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/portfolio`);
+        if (response.ok) {
+          document.getElementById('connection-status').className = 'status success';
+          document.getElementById('connection-status').textContent = 
+            '✅ API连接成功！后端服务器运行正常';
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (error) {
+        document.getElementById('connection-status').className = 'status error';
+        document.getElementById('connection-status').textContent = 
+          `❌ API连接失败: ${error.message}`;
+      }
+    }
+    
+    // 测试持仓API
+    async function testPortfolioAPI() {
+      const statusEl = document.getElementById('portfolio-status');
+      const dataEl = document.getElementById('portfolio-data');
+      
+      statusEl.className = 'status loading';
+      statusEl.textContent = '⏳ 正在获取持仓数据...';
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/portfolio`);
+        const data = await response.json();
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ 持仓数据获取成功！';
+        dataEl.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ 持仓数据获取失败: ${error.message}`;
+        dataEl.textContent = error.toString();
+      }
+    }
+    
+    // 测试市场数据API
+    async function testMarketAPI() {
+      const statusEl = document.getElementById('market-status');
+      const dataEl = document.getElementById('market-data');
+      
+      statusEl.className = 'status loading';
+      statusEl.textContent = '⏳ 正在获取市场数据...';
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/market`);
+        const data = await response.json();
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ 市场数据获取成功！';
+        dataEl.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ 市场数据获取失败: ${error.message}`;
+        dataEl.textContent = error.toString();
+      }
+    }
+    
+    // 测试ECharts集成
+    async function testChartIntegration() {
+      const statusEl = document.getElementById('chart-status');
+      const chartEl = document.getElementById('test-chart');
+      
+      statusEl.className = 'status loading';
+      statusEl.textContent = '⏳ 正在创建测试图表...';
+      
+      try {
+        // 获取市场数据
+        const response = await fetch(`${API_BASE_URL}/market`);
+        const data = await response.json();
+        
+        // 创建ECharts实例
+        const chart = echarts.init(chartEl);
+        
+        // 配置图表
+        const option = {
+          title: {
+            text: '股票价格对比',
+            left: 'center'
+          },
+          tooltip: {
+            trigger: 'axis'
+          },
+          xAxis: {
+            type: 'category',
+            data: data.stocks.map(stock => stock.ticker)
+          },
+          yAxis: {
+            type: 'value',
+            name: '价格 (EUR)'
+          },
+          series: [{
+            name: '当前价格',
+            type: 'bar',
+            data: data.stocks.map(stock => stock.currentPrice),
+            itemStyle: {
+              color: '#007bff'
+            }
+          }]
+        };
+        
+        chart.setOption(option);
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ ECharts图表创建成功！';
+        
+        // 窗口大小改变时重新调整图表
+        window.addEventListener('resize', () => chart.resize());
+        
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ 图表创建失败: ${error.message}`;
+      }
+    }
+    
+    // 测试交易API
+    async function testTradeAPI() {
+      const statusEl = document.getElementById('trade-status');
+      const dataEl = document.getElementById('trade-data');
+      
+      statusEl.className = 'status loading';
+      statusEl.textContent = '⏳ 正在测试交易功能...';
+      
+      try {
+        // 模拟买入交易
+        const tradeData = {
+          ticker: 'GLE FP',
+          type: 'buy',
+          quantity: 10,
+          price: 31.25
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/trade`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(tradeData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        statusEl.className = 'status success';
+        statusEl.textContent = '✅ 交易测试成功！';
+        dataEl.textContent = `测试交易数据:\n${JSON.stringify(tradeData, null, 2)}\n\n响应结果:\n${JSON.stringify(result, null, 2)}`;
+        
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `❌ 交易测试失败: ${error.message}`;
+        dataEl.textContent = error.toString();
+      }
+    }
+    
+    // 页面加载完成后自动检查API连接
+    document.addEventListener('DOMContentLoaded', checkAPIConnection);
+    
+    // 每30秒自动检查一次连接状态
+    setInterval(checkAPIConnection, 30000);
+  </script>
+</body>
+</html>
