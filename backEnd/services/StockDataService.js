@@ -58,6 +58,7 @@ class StockDataService {
         ticker,
         name: this.stockNames[ticker] || ticker,
         currentPrice: latest.close,
+        date: latest.date, // 添加日期字段
         high: latest.high,
         low: latest.low,
         open: latest.open,
