@@ -353,13 +353,13 @@
                   <div class="metric">
                     <span class="metric-label">High</span>
                     <span class="metric-value"
-                      >${{ selectedChartStock.yearHigh }}</span
+                      >${{ selectedChartStock.yearHigh.toFixed(2) }}</span
                     >
                   </div>
                   <div class="metric">
                     <span class="metric-label">Low</span>
                     <span class="metric-value"
-                      >${{ selectedChartStock.yearLow }}</span
+                      >${{ selectedChartStock.yearLow.toFixed(2) }}</span
                     >
                   </div>
                   <div class="metric">
@@ -1124,9 +1124,9 @@ export default {
             const changePercent = (change / previousClose) * 100;
 
             return {
-              price: currentPrice,
-              change: change,
-              changePercent: changePercent,
+              price: parseFloat(currentPrice.toFixed(2)),
+              change: parseFloat(change.toFixed(2)),
+              changePercent: parseFloat(changePercent.toFixed(2)),
             };
           }
         }
@@ -1146,9 +1146,9 @@ export default {
             const altData = await altResponse.json();
             if (altData.price && altData.percent_change) {
               return {
-                price: parseFloat(altData.price),
-                change: parseFloat(altData.change),
-                changePercent: parseFloat(altData.percent_change),
+                price: parseFloat(parseFloat(altData.price).toFixed(2)),
+                change: parseFloat(parseFloat(altData.change).toFixed(2)),
+                changePercent: parseFloat(parseFloat(altData.percent_change).toFixed(2)),
               };
             }
           }
@@ -1381,8 +1381,8 @@ export default {
           changePercent: Number(holding.profitPercentage) || 0,
           costPrice: Number(holding.costPrice) || 0,
           pnl: Number(holding.profit) || 0,
-          yearHigh: Number(holding.currentPrice) * 1.2 || 0, // 估算年高
-          yearLow: Number(holding.currentPrice) * 0.8 || 0, // 估算年低
+                  yearHigh: parseFloat((Number(holding.currentPrice) * 1.2).toFixed(2)) || 0, // 估算年高
+        yearLow: parseFloat((Number(holding.currentPrice) * 0.8).toFixed(2)) || 0, // 估算年低
           volume: "1.2M", // 占位符
         }));
 
@@ -1671,9 +1671,9 @@ export default {
       );
 
       return {
-        value: currentPrice,
-        changeValue: change,
-        change: changePercent,
+        value: parseFloat(currentPrice.toFixed(2)),
+        changeValue: parseFloat(change.toFixed(2)),
+        change: parseFloat(changePercent.toFixed(2)),
       };
     },
 
@@ -1697,9 +1697,9 @@ export default {
       const changePercent = (change / previousClose) * 100;
 
       return {
-        value: currentPrice,
-        changeValue: change,
-        change: changePercent,
+        value: parseFloat(currentPrice.toFixed(2)),
+        changeValue: parseFloat(change.toFixed(2)),
+        change: parseFloat(changePercent.toFixed(2)),
       };
     },
 
@@ -1990,10 +1990,15 @@ export default {
 
     // K线图相关方法
     showKlineChart(stock) {
+      console.log('Opening K-line chart for stock:', stock);
       this.selectedChartStock = stock;
       this.showChart = true;
+      
+      // 确保模态框完全渲染后再初始化图表
       this.$nextTick(() => {
-        this.initChart();
+        setTimeout(() => {
+          this.initChart();
+        }, 100);
       });
     },
 
@@ -2033,97 +2038,100 @@ export default {
       }
     },
 
-    initChart() {
+        initChart() {
       if (!this.$refs.chartRef) return;
 
-      this.chartInstance = echarts.init(this.$refs.chartRef);
+      // 确保DOM元素已经渲染
+      this.$nextTick(() => {
+        if (!this.$refs.chartRef) {
+          console.error('Chart ref not found');
+          return;
+        }
 
-      // 生成模拟K线数据
-      const klineData = this.generateKlineData(this.selectedChartStock);
+        console.log('Chart ref found, initializing...');
 
-      const option = {
-        title: {
-          text: `${this.selectedChartStock.name} (${this.selectedChartStock.code})`,
-          left: "center",
-          textStyle: {
-            color: "#333",
-            fontSize: 16,
-          },
-        },
-        tooltip: {
-          trigger: "axis",
-          axisPointer: {
-            type: "cross",
-          },
-          formatter: function (params) {
-            const data = params[0].data;
-            return `
-              Date: ${data[0]}<br/>
-              Open: $${data[1]}<br/>
-              Close: $${data[2]}<br/>
-              Low: $${data[3]}<br/>
-              High: $${data[4]}<br/>
-              Volume: ${data[5]}
-            `;
-          },
-        },
-        grid: {
-          left: "10%",
-          right: "10%",
-          bottom: "15%",
-        },
-        xAxis: {
-          type: "category",
-          data: klineData.dates,
-          scale: true,
-          boundaryGap: false,
-          axisLine: { onZero: false },
-          splitLine: { show: false },
-          splitNumber: 20,
-          min: "dataMin",
-          max: "dataMax",
-        },
-        yAxis: {
-          scale: true,
-          splitArea: {
-            show: true,
-          },
-        },
-        dataZoom: [
-          {
-            type: "inside",
-            start: 50,
-            end: 100,
-          },
-          {
-            show: true,
-            type: "slider",
-            top: "90%",
-            start: 50,
-            end: 100,
-          },
-        ],
-        series: [
-          {
-            name: "K-line Chart",
-            type: "candlestick",
-            data: klineData.values,
-            itemStyle: {
-              color: "#ef232a",
-              color0: "#14b143",
-              borderColor: "#ef232a",
-              borderColor0: "#14b143",
-            },
-          },
-        ],
-      };
-
-      this.chartInstance.setOption(option);
-
-      // 监听窗口大小变化
-      window.addEventListener("resize", () => {
+        // 清理之前的图表实例
         if (this.chartInstance) {
-          this.chartInstance.resize();
+          this.chartInstance.dispose();
+        }
+
+        try {
+          this.chartInstance = echarts.init(this.$refs.chartRef);
+          console.log('ECharts instance created successfully');
+
+          // 生成模拟K线数据
+          const klineData = this.generateKlineData(this.selectedChartStock);
+
+          console.log('Generated K-line data:', klineData);
+
+          // 检查数据是否有效
+          if (!klineData.dates || !klineData.values || klineData.dates.length === 0 || klineData.values.length === 0) {
+            console.error('Invalid K-line data generated');
+            return;
+          }
+
+          const option = {
+            title: {
+              text: `${this.selectedChartStock.name} (${this.selectedChartStock.code})`,
+              left: "center",
+              textStyle: {
+                color: "#333",
+                fontSize: 16,
+              },
+            },
+            tooltip: {
+              trigger: "axis",
+              formatter: function (params) {
+                const data = params[0].data;
+                const date = params[0].axisValue;
+                return `
+                  Date: ${date}<br/>
+                  Open: $${data[0]}<br/>
+                  Close: $${data[1]}<br/>
+                  Low: $${data[2]}<br/>
+                  High: $${data[3]}
+                `;
+              },
+            },
+            grid: {
+              left: "10%",
+              right: "10%",
+              bottom: "15%",
+            },
+            xAxis: {
+              type: "category",
+              data: klineData.dates,
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: [
+              {
+                name: "K-line Chart",
+                type: "candlestick",
+                data: klineData.values,
+                itemStyle: {
+                  color: "#ef232a",
+                  color0: "#14b143",
+                  borderColor: "#ef232a",
+                  borderColor0: "#14b143",
+                },
+              },
+            ],
+          };
+
+          console.log('Setting chart option:', option);
+          this.chartInstance.setOption(option);
+          console.log('Chart option set successfully');
+
+          // 监听窗口大小变化
+          window.addEventListener("resize", () => {
+            if (this.chartInstance) {
+              this.chartInstance.resize();
+            }
+          });
+        } catch (error) {
+          console.error('Error initializing chart:', error);
         }
       });
     },
@@ -2132,32 +2140,39 @@ export default {
       const dates = [];
       const values = [];
       const currentDate = new Date();
-      const basePrice = stock.currentPrice;
+      const basePrice = stock.currentPrice || 100; // 默认价格
 
-      // 生成一年的数据（约250个交易日）
-      for (let i = 250; i >= 0; i--) {
+      console.log('Generating K-line data for stock:', stock);
+      console.log('Base price:', basePrice);
+
+      // 生成30天的简单测试数据
+      for (let i = 30; i >= 0; i--) {
         const date = new Date(currentDate);
         date.setDate(date.getDate() - i);
-        dates.push(date.toISOString().split("T")[0]);
+        const dateStr = date.toISOString().split("T")[0];
+        dates.push(dateStr);
 
-        // 生成随机K线数据
-        const randomFactor = (Math.random() - 0.5) * 0.1;
-        const dayPrice = basePrice * (1 + randomFactor);
-        const open = dayPrice * (0.98 + Math.random() * 0.04);
-        const close = dayPrice * (0.98 + Math.random() * 0.04);
-        const low = Math.min(open, close) * (0.98 + Math.random() * 0.02);
-        const high = Math.max(open, close) * (1.01 + Math.random() * 0.02);
-        const volume = Math.floor(Math.random() * 50000 + 10000);
+        // 生成简单的K线数据
+        const open = basePrice + (Math.random() - 0.5) * 10;
+        const close = basePrice + (Math.random() - 0.5) * 10;
+        const low = Math.min(open, close) - Math.random() * 5;
+        const high = Math.max(open, close) + Math.random() * 5;
 
+        // ECharts K线图数据格式：[open, close, low, high]
         values.push([
-          dates[dates.length - 1],
           parseFloat(open.toFixed(2)),
           parseFloat(close.toFixed(2)),
           parseFloat(low.toFixed(2)),
           parseFloat(high.toFixed(2)),
-          volume,
         ]);
       }
+
+      console.log('Generated dates count:', dates.length);
+      console.log('Generated values count:', values.length);
+      console.log('Sample data:', {
+        dates: dates.slice(0, 5),
+        values: values.slice(0, 5)
+      });
 
       return { dates, values };
     },
@@ -3121,6 +3136,8 @@ export default {
   flex: 1;
   padding: 20px 32px;
   min-height: 400px;
+  width: 100%;
+  height: 400px;
 }
 
 /* Trading Page */
