@@ -83,7 +83,7 @@
               </div>
             </div>
             <div class="user-avatar">
-              <span>{{ userInfo.name.charAt(0) }}</span>
+              <img src="/profile.png" alt="User Avatar" class="avatar-image" />
             </div>
           </div>
         </div>
@@ -96,38 +96,9 @@
       <div v-if="activeTab === 'portfolio'" class="portfolio-page">
         <!-- Portfolio Overview Cards -->
         <div class="overview-section">
-          <div class="overview-card main-card">
-            <div class="card-header">
-              <h3>Total Assets</h3>
-              <div class="time-period">Today</div>
-            </div>
-            <div class="card-content">
-              <div class="primary-value">
-                ${{ (userInfo.totalAssets || 0).toLocaleString() }}
-              </div>
-              <div
-                class="value-change"
-                :class="{
-                  profit: (userInfo.profitPercentage || 0) >= 0,
-                  loss: (userInfo.profitPercentage || 0) < 0,
-                }"
-              >
-                <span class="change-amount"
-                  >{{ (userInfo.profitPercentage || 0) >= 0 ? "+" : "" }}${{
-                    Math.abs(userInfo.totalProfit || 0).toLocaleString()
-                  }}</span
-                >
-                <span class="change-percent"
-                  >({{ (userInfo.profitPercentage || 0) >= 0 ? "+" : ""
-                  }}{{ (userInfo.profitPercentage || 0).toFixed(2) }}%)</span
-                >
-              </div>
-            </div>
-          </div>
-
           <div class="overview-card">
             <div class="card-header">
-              <h3>Available Cash</h3>
+              <h3>Total Balance</h3>
             </div>
             <div class="card-content">
               <div class="secondary-value">
@@ -138,18 +109,18 @@
 
           <div class="overview-card">
             <div class="card-header">
-              <h3>Holdings Value</h3>
+              <h3>Total Assets</h3>
             </div>
             <div class="card-content">
               <div class="secondary-value">
-                ${{ (holdingsValue || 0).toLocaleString() }}
+                ${{ (userInfo.totalAssets || 0).toLocaleString() }}
               </div>
             </div>
           </div>
 
           <div class="overview-card">
             <div class="card-header">
-              <h3>Day's P&L</h3>
+              <h3>Today's P&L</h3>
             </div>
             <div class="card-content">
               <div
@@ -158,6 +129,25 @@
               >
                 {{ todayPnL >= 0 ? "+" : "" }}${{
                   Math.abs(todayPnL).toLocaleString()
+                }}
+              </div>
+            </div>
+          </div>
+
+          <div class="overview-card">
+            <div class="card-header">
+              <h3>Total Profit</h3>
+            </div>
+            <div class="card-content">
+              <div
+                class="secondary-value"
+                :class="{
+                  profit: userInfo.totalProfit >= 0,
+                  loss: userInfo.totalProfit < 0,
+                }"
+              >
+                {{ userInfo.totalProfit >= 0 ? "+" : "" }}${{
+                  Math.abs(userInfo.totalProfit || 0).toLocaleString()
                 }}
               </div>
             </div>
@@ -628,7 +618,9 @@
         <div class="profile-layout">
           <div class="profile-card-modern">
             <div class="profile-header-modern">
-              <div class="user-avatar-large">{{ userInfo.name.charAt(0) }}</div>
+              <div class="user-avatar-large">
+                <img src="/profile.png" alt="User Avatar" class="avatar-image-large" />
+              </div>
               <div class="user-details-modern">
                 <h2>{{ userInfo.name }}</h2>
                 <p class="user-id">ID: {{ userInfo.id }}</p>
@@ -2508,6 +2500,15 @@ export default {
   color: white;
   font-weight: 600;
   font-size: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* Main Container */
@@ -2526,14 +2527,14 @@ export default {
 
 .overview-section {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .overview-card {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 16px;
   border: 1px solid #e5e7eb;
   transition: all 0.2s;
 }
@@ -2553,11 +2554,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .card-header h3 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   margin: 0;
   opacity: 0.8;
@@ -2577,7 +2578,7 @@ export default {
 }
 
 .secondary-value {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -3676,6 +3677,15 @@ export default {
   justify-content: center;
   font-size: 32px;
   font-weight: 700;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-image-large {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .user-details-modern {
@@ -3716,14 +3726,14 @@ export default {
 }
 
 .account-overview {
-  padding: 32px;
+  padding: 24px;
   border-bottom: 1px solid #f3f4f6;
 }
 
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 .overview-item {
@@ -3731,13 +3741,13 @@ export default {
 }
 
 .item-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .item-value {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #1a1a1a;
 }
@@ -3906,7 +3916,8 @@ export default {
   }
 
   .overview-section {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .table-header,
@@ -3950,6 +3961,7 @@ export default {
 
   .overview-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .chart-modal {
@@ -4000,11 +4012,12 @@ export default {
   }
 
   .secondary-value {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .overview-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 }
 
