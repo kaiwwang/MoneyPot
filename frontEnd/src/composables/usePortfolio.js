@@ -114,7 +114,7 @@ export function usePortfolio() {
     try {
       const historyData = await dataService.getTradeHistory();
       if (historyData && Array.isArray(historyData)) {
-        tradeHistory.value = historyData;
+        tradeHistory.value = dataService.transformTradeHistoryData(historyData);
       }
     } catch (err) {
       error.value = `Failed to load trade history: ${err.message}`;

@@ -223,6 +223,72 @@ class DataService {
         }));
     }
   }
+
+  /**
+   * Transform API trade history data to component format
+   */
+  transformTradeHistoryData(apiData) {
+    if (!apiData || !Array.isArray(apiData)) return [];
+    
+    return apiData.map((trade, index) => ({
+      id: index + 1,
+      stockCode: trade.stock_code || "",
+      stockName: trade.stock_name || "Unknown",
+      type: (trade.trade_type || "buy").toLowerCase(),
+      quantity: Number(trade.trade_volume) || 0,
+      price: Number(trade.trade_price) || 0,
+      date: this.formatTradeDate(trade.trade_date),
+      totalAmount: Number(trade.trade_amount) || 0,
+      totalHoldings: Number(trade.total_holdings) || 0,
+      avgCost: Number(trade.avg_cost) || 0
+    }));
+  }
+
+  /**
+   * Format trade date for display
+   */
+  formatTradeDate(tradeDate) {
+    if (!tradeDate) {
+      return new Date().toLocaleDateString('zh-CN');
+    }
+    
+    try {
+      // 处理数据库返回的时间格式，可能是ISO格式或字符串格式
+      let date;
+      
+      if (typeof tradeDate === 'string') {
+        // 如果是ISO格式（包含T和Z），直接解析
+        if (tradeDate.includes('T')) {
+          date = new Date(tradeDate);
+        } else {
+          // 如果是 "2024-09-09 09:30:15" 格式，转换为ISO格式
+          date = new Date(tradeDate.replace(' ', 'T') + 'Z');
+        }
+      } else {
+        date = new Date(tradeDate);
+      }
+      
+      // 检查日期是否有效
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date format:', tradeDate);
+        return new Date().toLocaleDateString('zh-CN');
+      }
+      
+      // 格式化为中文日期格式，使用本地时区
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Asia/Shanghai'
+      });
+    } catch (error) {
+      console.error('Error formatting trade date:', error, tradeDate);
+      return new Date().toLocaleDateString('zh-CN');
+    }
+  }
 }
 
 // Create and export singleton instance

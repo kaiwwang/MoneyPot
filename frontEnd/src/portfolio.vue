@@ -994,6 +994,50 @@ export default {
     },
   },
   methods: {
+    // 格式化交易日期
+    formatTradeDate(tradeDate) {
+      if (!tradeDate) {
+        return new Date().toLocaleDateString('zh-CN');
+      }
+      
+      try {
+        // 处理数据库返回的时间格式，可能是ISO格式或字符串格式
+        let date;
+        
+        if (typeof tradeDate === 'string') {
+          // 如果是ISO格式（包含T和Z），直接解析
+          if (tradeDate.includes('T')) {
+            date = new Date(tradeDate);
+          } else {
+            // 如果是 "2024-09-09 09:30:15" 格式，转换为ISO格式
+            date = new Date(tradeDate.replace(' ', 'T') + 'Z');
+          }
+        } else {
+          date = new Date(tradeDate);
+        }
+        
+        // 检查日期是否有效
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date format:', tradeDate);
+          return new Date().toLocaleDateString('zh-CN');
+        }
+        
+        // 格式化为中文日期格式，使用本地时区
+        return date.toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZone: 'Asia/Shanghai'
+        });
+      } catch (error) {
+        console.error('Error formatting trade date:', error, tradeDate);
+        return new Date().toLocaleDateString('zh-CN');
+      }
+    },
+
     // Get tab icons
     getTabIcon(tabId) {
       const icons = {
@@ -1425,81 +1469,34 @@ export default {
 
     async fetchTradingHistory() {
       try {
-        console.log("[API] Attempting to fetch trading history...");
-        // Try to fetch from a dedicated trading history endpoint
+        console.log("[API] 获取交易历史...");
         const response = await fetch(`${this.API_BASE_URL}/trades`);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log("[API] Trading history data received:", data);
-
-          // Transform the data to match our UI format
+          console.log("[API] 交易历史数据:", data);
+          
+          // 转换数据格式以匹配UI需求
           this.tradingHistory = (data.trades || []).map((trade, index) => ({
-            id: trade.id || index + 1,
-            stockCode: trade.ticker || trade.symbol || "",
-            stockName: trade.stockName || trade.name || "Unknown",
-            type: trade.type || (trade.action === "BUY" ? "buy" : "sell"),
-            quantity: Number(trade.quantity) || 0,
-            price: Number(trade.price) || 0,
-            date: trade.timestamp || trade.date || new Date().toISOString(),
+            id: index + 1,
+            stockCode: trade.stock_code || "",
+            stockName: trade.stock_name || "Unknown",
+            type: (trade.trade_type || "buy").toLowerCase(),
+            quantity: Number(trade.trade_volume) || 0,
+            price: Number(trade.trade_price) || 0,
+            date: this.formatTradeDate(trade.trade_date),
           }));
-
-          console.log("[API] Trading history updated:", this.tradingHistory);
+          
+          console.log("[API] 交易历史已更新:", this.tradingHistory);
         } else {
-          // If trading history endpoint doesn't exist, try to get it from account info
-          console.log(
-            "[API] No dedicated trading history endpoint, checking account info..."
-          );
-
-          // For now, we'll use mock data as fallback since the backend might not have this endpoint yet
-          if (this.tradingHistory.length === 0) {
-            this.tradingHistory = [
-              {
-                id: 1,
-                stockCode: "600036",
-                stockName: "China Merchants Bank",
-                type: "buy",
-                quantity: 500,
-                price: 37.8,
-                date: "2025-07-27 14:30",
-              },
-              {
-                id: 2,
-                stockCode: "000858",
-                stockName: "Wuliangye",
-                type: "buy",
-                quantity: 200,
-                price: 168.0,
-                date: "2025-07-26 10:15",
-              },
-              {
-                id: 3,
-                stockCode: "000002",
-                stockName: "China Vanke",
-                type: "sell",
-                quantity: 500,
-                price: 9.1,
-                date: "2025-07-25 15:45",
-              },
-            ];
-            console.log("[API] Using fallback trading history data");
-          }
+          console.error("[API] 获取交易历史失败:", response.status, response.statusText);
+          // 如果API调用失败，使用空数组
+          this.tradingHistory = [];
         }
       } catch (err) {
         console.error("[API] 获取交易历史失败:", err);
-        // Use fallback data on error
-        if (this.tradingHistory.length === 0) {
-          this.tradingHistory = [
-            {
-              id: 1,
-              stockCode: "SAMPLE",
-              stockName: "Sample Stock",
-              type: "buy",
-              quantity: 100,
-              price: 50.0,
-              date: new Date().toISOString().slice(0, 16).replace("T", " "),
-            },
-          ];
-        }
+        // 错误时使用空数组
+        this.tradingHistory = [];
       }
     },
 

@@ -186,12 +186,13 @@ class AccountService {
 
       // 检查是否已有持仓
       const existingHolding = await this.dbService.getHolding(ticker);
+      let newQuantity, newCostPrice;
       
       if (existingHolding) {
         // 更新现有持仓
-        const newQuantity = existingHolding.shares + quantity;
+        newQuantity = existingHolding.shares + quantity;
         const newTotalCost = (existingHolding.shares * existingHolding.cost_price) + totalCost;
-        const newCostPrice = newTotalCost / newQuantity;
+        newCostPrice = newTotalCost / newQuantity;
         const newCurrentValue = newQuantity * currentPrice;
         const newProfitLoss = newCurrentValue - newTotalCost;
         const newProfitLossPercent = (newProfitLoss / newTotalCost) * 100;
@@ -206,6 +207,8 @@ class AccountService {
         });
       } else {
         // 创建新持仓
+        newQuantity = quantity;
+        newCostPrice = currentPrice;
         const profitLoss = 0; // 新买入的股票盈亏为0
         const profitLossPercent = 0;
 
@@ -229,11 +232,25 @@ class AccountService {
         quantity,
         price: currentPrice,
         totalAmount: totalCost,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+        stockName: stockData.name || stockData.stockName || ticker,
+        totalHoldings: newQuantity,
+        avgCost: newCostPrice
       };
       this.userAccount.trades.push(trade);
+      
+      // 保存到数据库
+      try {
+        await this.dbService.insertTrade(trade);
+      } catch (error) {
+        logger.error('保存交易记录到数据库失败:', error);
+      }
 
       logger.info(`买入成功: ${ticker} ${quantity}股，价格: ${currentPrice}`);
+      
+      // 延迟1秒
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       return trade;
     } catch (error) {
       logger.error('买入股票失败:', error);
@@ -273,13 +290,15 @@ class AccountService {
 
       // 更新持仓
       const newQuantity = holding.shares - quantity;
+      let newCostPrice = 0;
+      
       if (newQuantity === 0) {
         // 完全卖出，删除持仓
         await this.dbService.deleteHolding(ticker);
       } else {
         // 部分卖出，更新持仓
         const remainingCost = (holding.shares * holding.cost_price * newQuantity) / holding.shares;
-        const newCostPrice = remainingCost / newQuantity;
+        newCostPrice = remainingCost / newQuantity;
         const newCurrentValue = newQuantity * currentPrice;
         const newProfitLoss = newCurrentValue - remainingCost;
         const newProfitLossPercent = (newProfitLoss / remainingCost) * 100;
@@ -302,11 +321,25 @@ class AccountService {
         quantity,
         price: currentPrice,
         totalAmount,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+        stockName: holding.stock_name || ticker,
+        totalHoldings: newQuantity,
+        avgCost: newQuantity > 0 ? newCostPrice : 0
       };
       this.userAccount.trades.push(trade);
+      
+      // 保存到数据库
+      try {
+        await this.dbService.insertTrade(trade);
+      } catch (error) {
+        logger.error('保存交易记录到数据库失败:', error);
+      }
 
       logger.info(`卖出成功: ${ticker} ${quantity}股，价格: ${currentPrice}`);
+      
+      // 延迟1秒
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       return trade;
     } catch (error) {
       logger.error('卖出股票失败:', error);
@@ -358,6 +391,20 @@ class AccountService {
    */
   getTradeHistory() {
     return this.userAccount.trades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }
+
+  /**
+   * 获取交易历史（从数据库）
+   */
+  async getTrades() {
+    try {
+      const trades = await this.dbService.getTrades();
+      return trades;
+    } catch (error) {
+      logger.error('获取交易历史失败:', error);
+      // 如果数据库查询失败，返回内存中的交易记录作为备选
+      return this.getTradeHistory();
+    }
   }
 }
 

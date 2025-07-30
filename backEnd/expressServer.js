@@ -87,6 +87,9 @@ class ExpressServer {
         
         // 辅助路由
         this.app.get('/api/market/:ticker/max-buy', StockController.getMaxBuyQuantity);
+        
+        // 交易历史路由
+        this.app.get('/api/trades', StockController.getTrades);
 
         http.createServer(this.app).listen(this.port);
         console.log(`Listening on port ${this.port}`);

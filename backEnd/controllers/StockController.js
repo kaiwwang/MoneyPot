@@ -233,6 +233,27 @@ class StockController extends Controller {
       });
     }
   }
+
+  /**
+   * 获取交易历史
+   */
+  static async getTrades(request, response) {
+    try {
+      logger.info('获取交易历史');
+      
+      const trades = await globalAccountService.getTrades();
+      
+      Controller.sendResponse(response, {
+        trades
+      });
+    } catch (error) {
+      logger.error('获取交易历史失败:', error);
+      Controller.sendError(response, {
+        code: 500,
+        error: '获取交易历史失败'
+      });
+    }
+  }
 }
 
 module.exports = StockController; 
