@@ -389,23 +389,23 @@
             <!-- Major Indices -->
             <div class="indices-grid">
               <div
-                v-for="index in majorIndices"
-                :key="index.code"
+                v-for="index in globalIndices"
+                :key="index.symbol"
                 class="index-card"
-                :class="{ profit: index.change >= 0, loss: index.change < 0 }"
+                :class="{ profit: (index.changePercent || 0) >= 0, loss: (index.changePercent || 0) < 0 }"
               >
                 <div class="index-header">
                   <div class="index-info">
-                    <span class="index-symbol">{{ index.code }}</span>
-                    <span class="market-badge" :class="index.market.toLowerCase()">{{ index.market }}</span>
+                    <span class="index-symbol">{{ index.symbol }}</span>
+                    <span class="market-badge" :class="getMarketClass(index.symbol)">{{ getMarketCode(index.symbol) }}</span>
                   </div>
                 </div>
-                <div class="index-name">{{ index.name }}</div>
+                <div class="index-name">{{ index.symbol }}</div>
                 <div class="index-quote">
-                  <div class="index-value">{{ index.value.toLocaleString() }}</div>
-                  <div class="index-change" :class="{ profit: index.change >= 0, loss: index.change < 0 }">
-                    <span class="change-percent">{{ index.change >= 0 ? '+' : '' }}{{ index.change.toFixed(2) }}%</span>
-                    <span class="change-value">{{ index.change >= 0 ? '+' : '' }}{{ index.changeValue.toFixed(2) }}</span>
+                  <div class="index-value">{{ index.price?.toFixed(2) || 'Loading...' }}</div>
+                  <div class="index-change" :class="{ profit: (index.changePercent || 0) >= 0, loss: (index.changePercent || 0) < 0 }">
+                    <span class="change-percent">{{ (index.changePercent || 0) >= 0 ? '+' : '' }}{{ (index.changePercent || 0).toFixed(2) }}%</span>
+                    <span class="change-value">{{ (index.change || 0) >= 0 ? '+' : '' }}{{ (index.change || 0).toFixed(2) }}</span>
                   </div>
                 </div>
               </div>
@@ -413,14 +413,23 @@
 
             <!-- Available Stocks -->
             <div class="stocks-section">
-              <h4>Popular Stocks</h4>
+              <div class="stocks-header">
+                <h4>Popular Stocks</h4>
+                <div class="stocks-update-indicator">
+                  <span class="indicator-dot"></span>
+                  <span class="update-text">Live</span>
+                </div>
+              </div>
               <div class="stocks-grid">
                 <div
-                  v-for="stock in availableStocks"
+                  v-for="stock in popularStocks"
                   :key="stock.code"
                   class="stock-card"
                   @click="selectStock(stock)"
-                  :class="{ selected: selectedStock && selectedStock.code === stock.code }"
+                  :class="{ 
+                    selected: selectedStock && selectedStock.code === stock.code,
+                    updating: stock.isUpdating 
+                  }"
                 >
                   <div class="stock-info">
                     <div class="stock-symbol">{{ stock.code }}</div>
@@ -627,6 +636,10 @@ export default {
         // { id: 'custom', name: 'Custom', days: 0 }
       ],
       tradingHistory: [],
+      
+      // 热门股票数据（从后端获取）
+      popularStocks: [],
+      popularStocksUpdateInterval: null,
     };
   },
   computed: {
@@ -870,11 +883,106 @@ export default {
       }
     },
 
+    // 随机更新热门股票数据
+    updatePopularStocks() {
+      // 随机选择1-3只股票进行更新
+      const numToUpdate = Math.floor(Math.random() * 3) + 1; // 1-3只
+      const indicesToUpdate = [];
+      
+      // 随机选择要更新的股票索引
+      while (indicesToUpdate.length < numToUpdate) {
+        const randomIndex = Math.floor(Math.random() * this.popularStocks.length);
+        if (!indicesToUpdate.includes(randomIndex)) {
+          indicesToUpdate.push(randomIndex);
+        }
+      }
+
+      // 更新选中的股票
+      indicesToUpdate.forEach(index => {
+        const stock = this.popularStocks[index];
+        
+        // 生成更真实的价格变化（-0.5% 到 +0.5%）
+        const priceChangePercent = (Math.random() - 0.5) * 1; // -0.5% 到 +0.5%
+        const priceChange = stock.price * (priceChangePercent / 100);
+        
+        // 更新价格，保留两位小数
+        stock.price = Math.max(0.01, parseFloat((stock.price + priceChange).toFixed(2)));
+        
+        // 生成更真实的涨跌幅变化（-0.3% 到 +0.3%）
+        const changeVariation = (Math.random() - 0.5) * 0.6; // -0.3% 到 +0.3%
+        stock.change = Math.max(-5, Math.min(5, parseFloat((stock.change + changeVariation).toFixed(2)))); // 限制在-5%到+5%之间
+        
+        // 添加动画效果
+        stock.isUpdating = true;
+        setTimeout(() => {
+          stock.isUpdating = false;
+        }, 500);
+      });
+
+      console.log(`[Popular Stocks] Updated ${numToUpdate} stocks randomly`);
+    },
+
+    // 启动热门股票实时更新
+    startPopularStocksUpdates() {
+      // 只有在有数据的情况下才开始更新
+      if (this.popularStocks.length === 0) {
+        console.log("[Popular Stocks] No data available, skipping updates");
+        return;
+      }
+      
+      // 立即更新一次
+      this.updatePopularStocks();
+      
+      // 使用递归的setTimeout来实现随机间隔
+      const scheduleNextUpdate = () => {
+        const randomDelay = Math.random() * 4000 + 2000; // 2-6秒随机间隔
+        this.popularStocksUpdateInterval = setTimeout(() => {
+          this.updatePopularStocks();
+          scheduleNextUpdate(); // 递归调用，安排下一次更新
+        }, randomDelay);
+      };
+      
+      scheduleNextUpdate();
+    },
+
+    // 停止热门股票更新
+    stopPopularStocksUpdates() {
+      if (this.popularStocksUpdateInterval) {
+        clearInterval(this.popularStocksUpdateInterval);
+        this.popularStocksUpdateInterval = null;
+      }
+    },
+
     // 标签页切换方法
     switchTab(tabId) {
       console.log("[switchTab] Switching from", this.activeTab, "to", tabId);
       this.activeTab = tabId;
       console.log("[switchTab] activeTab is now:", this.activeTab);
+    },
+
+    // 获取市场代码
+    getMarketCode(symbol) {
+      const marketMap = {
+        'S&P 500': 'US',
+        'NASDAQ': 'US', 
+        'DOW': 'US',
+        'FTSE 100': 'UK',
+        'DAX': 'DE',
+        'CAC 40': 'FR',
+        'Nikkei': 'JP',
+        'Hang Seng': 'HK',
+        'Shanghai': 'CN',
+        'ASX 200': 'AU',
+        'TSX': 'CA',
+        'BSE Sensex': 'IN'
+      };
+      return marketMap[symbol] || 'US';
+    },
+
+    // 获取市场样式类
+    getMarketClass(symbol) {
+      const marketCode = this.getMarketCode(symbol);
+      return marketCode.toLowerCase();
     },
 
     // API数据获取方法
@@ -959,7 +1067,17 @@ export default {
           change: Number(stock.changePercentage) || 0,
         }));
 
+        // 设置热门股票数据（从后端数据中获取）
+        this.popularStocks = (data.stocks || []).map((stock) => ({
+          code: stock.ticker || "",
+          name: stock.name || "Unknown",
+          price: Number(stock.currentPrice) || 0,
+          change: Number(stock.changePercentage) || 0,
+          isUpdating: false
+        }));
+
         console.log("[API] 市场数据已更新:", this.availableStocks);
+        console.log("[API] 热门股票数据已更新:", this.popularStocks);
       } catch (err) {
         console.error("[API] 获取市场数据失败:", err);
         this.error = "Failed to fetch market data";
@@ -983,6 +1101,9 @@ export default {
         ]);
         this.lastUpdateTime = new Date();
         console.log("[API] All data loaded successfully at:", this.lastUpdateTime.toLocaleTimeString());
+        
+        // 数据加载完成后启动热门股票更新
+        this.startPopularStocksUpdates();
       } catch (err) {
         console.error("[API] 加载数据失败:", err);
         this.error = "Failed to load data from backend. Please check if the backend server is running.";
@@ -1728,6 +1849,9 @@ export default {
     // Stop global indices updates and rotation
     this.stopTickerRotation();
     this.stopGlobalIndicesUpdates();
+    
+    // Stop popular stocks updates
+    this.stopPopularStocksUpdates();
   },
 };
 </script>
@@ -2902,6 +3026,46 @@ export default {
   color: #be185d;
 }
 
+.market-badge.uk {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.market-badge.de {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.market-badge.fr {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.market-badge.jp {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.market-badge.cn {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.market-badge.au {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.market-badge.ca {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.market-badge.in {
+  background: #fef3c7;
+  color: #d97706;
+}
+
 .index-name {
   font-size: 12px;
   color: #6b7280;
@@ -2945,17 +3109,41 @@ export default {
   padding: 0 24px 24px 24px;
 }
 
+.stocks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .stocks-section h4 {
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 16px 0;
+  margin: 0;
   color: #1a1a1a;
+}
+
+.stocks-update-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.stocks-update-indicator .indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: pulse 2s infinite;
 }
 
 .stocks-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
+  position: relative;
 }
 
 .stock-card {
@@ -2965,6 +3153,9 @@ export default {
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
+  transform-origin: center;
+  box-sizing: border-box;
 }
 
 .stock-card:hover {
@@ -2975,6 +3166,35 @@ export default {
 .stock-card.selected {
   border-color: #3b82f6;
   background: #eff6ff;
+}
+
+.stock-card.updating {
+  animation: stockUpdate 0.5s ease-in-out;
+  z-index: 10;
+  position: relative;
+}
+
+@keyframes stockUpdate {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  25% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 3px 6px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 4px 8px rgba(59, 130, 246, 0.4);
+  }
+  75% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 3px 6px rgba(59, 130, 246, 0.2);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .stock-info {
