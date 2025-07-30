@@ -1300,6 +1300,15 @@ export default {
       console.log("[switchTab] Switching from", this.activeTab, "to", tabId);
       this.activeTab = tabId;
       console.log("[switchTab] activeTab is now:", this.activeTab);
+      
+      // 如果切换到portfolio标签页，重新初始化图表
+      if (tabId === 'portfolio') {
+        this.$nextTick(() => {
+          console.log("[switchTab] Reinitializing charts for portfolio tab");
+          this.initAssetChart();
+          this.initPortfoliePieChart();
+        });
+      }
     },
 
     // 获取市场代码
@@ -1458,6 +1467,12 @@ export default {
 
         // 数据加载完成后启动热门股票更新
         this.startPopularStocksUpdates();
+        
+        // 数据加载完成后重新初始化图表
+        this.$nextTick(() => {
+          this.initAssetChart();
+          this.initPortfoliePieChart();
+        });
       } catch (err) {
         console.error("[API] 加载数据失败:", err);
         this.error =
@@ -1743,18 +1758,29 @@ export default {
     },
 
     initAssetChart() {
-      if (!this.$refs.assetChartRef) return;
+      console.log('[Chart] Initializing asset chart...');
+      console.log('[Chart] Chart ref exists:', !!this.$refs.assetChartRef);
+      console.log('[Chart] Selected time range:', this.selectedTimeRange);
+      
+      // 添加延迟确保DOM完全渲染
+      setTimeout(() => {
+        if (!this.$refs.assetChartRef) {
+          console.warn('[Chart] Chart ref not found after delay, skipping initialization');
+          return;
+        }
 
-      if (this.assetChartInstance) {
-        this.assetChartInstance.dispose();
-      }
+        if (this.assetChartInstance) {
+          console.log('[Chart] Disposing existing chart instance');
+          this.assetChartInstance.dispose();
+        }
 
-      this.assetChartInstance = echarts.init(this.$refs.assetChartRef);
+        this.assetChartInstance = echarts.init(this.$refs.assetChartRef);
+        console.log('[Chart] Chart instance created');
 
-      const trendData = this.generateAssetTrendData();
-      console.log("Generated asset trend data:", trendData);
+        const trendData = this.generateAssetTrendData();
+        console.log("[Chart] Generated asset trend data:", trendData);
 
-      const option = {
+        const option = {
         grid: {
           left: "3%",
           right: "3%",
@@ -1826,25 +1852,32 @@ export default {
         ],
       };
 
-      this.assetChartInstance.setOption(option);
+        this.assetChartInstance.setOption(option);
 
-      // 监听窗口大小变化
-      window.addEventListener("resize", () => {
-        if (this.assetChartInstance) {
-          this.assetChartInstance.resize();
-        }
-      });
+        // 监听窗口大小变化
+        window.addEventListener("resize", () => {
+          if (this.assetChartInstance) {
+            this.assetChartInstance.resize();
+          }
+        });
+      }, 100); // 100ms延迟确保DOM完全渲染
     },
 
     generateAssetTrendData() {
       const selectedRange = this.timeRanges.find(
         (r) => r.id === this.selectedTimeRange
       );
-      const days = selectedRange.days;
+      const days = selectedRange ? selectedRange.days : 365; // 默认YTD
       const dates = [];
       const values = [];
       const currentDate = new Date();
-      const currentAssets = this.totalAssets;
+      const currentAssets = this.totalAssets || 100000; // 如果没有数据，使用默认值
+
+      console.log('[Chart] Generating asset trend data:', {
+        selectedTimeRange: this.selectedTimeRange,
+        days: days,
+        currentAssets: currentAssets
+      });
 
       // 生成日期和对应的资产值
       for (let i = days - 1; i >= 0; i--) {
@@ -1868,24 +1901,36 @@ export default {
       // 确保最后一个值是当前总资产
       values[values.length - 1] = currentAssets;
 
+      console.log('[Chart] Generated data points:', dates.length, 'dates and values');
+
       return { dates, values };
     },
 
     // Portfolio Pie Chart initialization
     initPortfoliePieChart() {
-      if (
-        !this.$refs.portfolioPieChartRef ||
-        this.portfolioComposition.length === 0
-      )
-        return;
+      console.log('[Chart] Initializing portfolio pie chart...');
+      console.log('[Chart] Pie chart ref exists:', !!this.$refs.portfolioPieChartRef);
+      console.log('[Chart] Portfolio composition length:', this.portfolioComposition.length);
+      
+      // 添加延迟确保DOM完全渲染
+      setTimeout(() => {
+        if (
+          !this.$refs.portfolioPieChartRef ||
+          this.portfolioComposition.length === 0
+        ) {
+          console.warn('[Chart] Pie chart ref not found or no data, skipping initialization');
+          return;
+        }
 
-      if (this.portfoliePieChartInstance) {
-        this.portfoliePieChartInstance.dispose();
-      }
+        if (this.portfoliePieChartInstance) {
+          console.log('[Chart] Disposing existing pie chart instance');
+          this.portfoliePieChartInstance.dispose();
+        }
 
-      this.portfoliePieChartInstance = echarts.init(
-        this.$refs.portfolioPieChartRef
-      );
+        this.portfoliePieChartInstance = echarts.init(
+          this.$refs.portfolioPieChartRef
+        );
+        console.log('[Chart] Pie chart instance created');
 
       const pieData = this.portfolioComposition.map((stock) => ({
         name: stock.code,
@@ -1940,14 +1985,15 @@ export default {
         ],
       };
 
-      this.portfoliePieChartInstance.setOption(option);
+        this.portfoliePieChartInstance.setOption(option);
 
-      // Handle window resize
-      window.addEventListener("resize", () => {
-        if (this.portfoliePieChartInstance) {
-          this.portfoliePieChartInstance.resize();
-        }
-      });
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          if (this.portfoliePieChartInstance) {
+            this.portfoliePieChartInstance.resize();
+          }
+        });
+      }, 100); // 100ms延迟确保DOM完全渲染
     },
 
     // K线图相关方法
@@ -2125,6 +2171,20 @@ export default {
     },
   },
 
+  watch: {
+    // 监听activeTab变化，当切换到portfolio时重新初始化图表
+    activeTab(newTab, oldTab) {
+      console.log('[Watch] activeTab changed from', oldTab, 'to', newTab);
+      if (newTab === 'portfolio' && oldTab !== 'portfolio') {
+        this.$nextTick(() => {
+          console.log('[Watch] Reinitializing charts for portfolio tab');
+          this.initAssetChart();
+          this.initPortfoliePieChart();
+        });
+      }
+    }
+  },
+
   mounted() {
     // Initialize theme from localStorage
     const savedTheme = localStorage.getItem("darkMode");
@@ -2132,12 +2192,19 @@ export default {
       this.isDarkMode = JSON.parse(savedTheme);
     }
 
-    // 首先加载所有API数据
-    this.loadAllData();
-
-    this.$nextTick(() => {
-      this.initAssetChart();
-      this.initPortfoliePieChart();
+    // 首先加载所有API数据，然后在数据加载完成后初始化图表
+    this.loadAllData().then(() => {
+      this.$nextTick(() => {
+        this.initAssetChart();
+        this.initPortfoliePieChart();
+      });
+    }).catch((error) => {
+      console.error('Failed to load data:', error);
+      // 即使数据加载失败，也尝试初始化图表（使用模拟数据）
+      this.$nextTick(() => {
+        this.initAssetChart();
+        this.initPortfoliePieChart();
+      });
     });
 
     // 启动实时数据更新
