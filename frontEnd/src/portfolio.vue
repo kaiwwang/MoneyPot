@@ -886,7 +886,7 @@ export default {
     // 随机更新热门股票数据
     updatePopularStocks() {
       // 随机选择1-3只股票进行更新
-      const numToUpdate = Math.floor(Math.random() * 3) + 1; // 1-3只
+      const numToUpdate = Math.floor(Math.random() * 3) + 5; // 1-3只
       const indicesToUpdate = [];
       
       // 随机选择要更新的股票索引
