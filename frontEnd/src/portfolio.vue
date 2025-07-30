@@ -3813,6 +3813,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  min-width: 120px;
 }
 
 .transaction-symbol {
@@ -3830,7 +3832,9 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-width: 80px;
 }
 
 .transaction-type {
@@ -3839,6 +3843,9 @@ export default {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
+  text-align: center;
+  min-width: 40px;
+  display: inline-block;
 }
 
 .transaction-type.buy {
@@ -3854,6 +3861,7 @@ export default {
 .transaction-amount {
   font-size: 12px;
   color: #6b7280;
+  text-align: center;
 }
 
 .transaction-meta {
@@ -3861,6 +3869,8 @@ export default {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  min-width: 360px;
+  text-align: right;
 }
 
 .transaction-total {
