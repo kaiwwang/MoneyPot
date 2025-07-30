@@ -21,31 +21,55 @@
           </nav>
         </div>
         <div class="header-right">
-          <div class="theme-toggle">
-            <button @click="toggleTheme" class="theme-btn" :title="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-              <span class="theme-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
+          <!-- <div class="theme-toggle">
+            <button
+              @click="toggleTheme"
+              class="theme-btn"
+              :title="
+                isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
+              "
+            >
+              <span class="theme-icon">{{ isDarkMode ? "☀️" : "🌙" }}</span>
             </button>
-          </div>
+          </div> -->
           <div class="global-indices-ticker">
             <div class="ticker-container">
-              <div 
-                v-for="(index, i) in globalIndices" 
+              <div
+                v-for="(index, i) in globalIndices"
                 :key="index.symbol"
                 class="ticker-item"
                 :class="{ active: currentTickerIndex === i }"
               >
                 <span class="ticker-symbol">{{ index.symbol }}</span>
-                <span class="ticker-value">{{ index.price?.toFixed(2) || 'Loading...' }}</span>
-                <span class="ticker-change" :class="{ profit: (index.change || 0) >= 0, loss: (index.change || 0) < 0 }">
-                  {{ (index.change || 0) >= 0 ? '+' : '' }}{{ (index.changePercent || 0).toFixed(2) }}%
+                <span class="ticker-value">{{
+                  index.price?.toFixed(2) || "Loading..."
+                }}</span>
+                <span
+                  class="ticker-change"
+                  :class="{
+                    profit: (index.change || 0) >= 0,
+                    loss: (index.change || 0) < 0,
+                  }"
+                >
+                  {{ (index.change || 0) >= 0 ? "+" : ""
+                  }}{{ (index.changePercent || 0).toFixed(2) }}%
                 </span>
               </div>
             </div>
           </div>
           <div class="market-status">
-            <div class="status-indicator" :class="{ active: !loading && !error }"></div>
+            <div
+              class="status-indicator"
+              :class="{ active: !loading && !error }"
+            ></div>
             <span class="status-text">
-              {{ loading ? 'Syncing...' : error ? 'Connection Error' : 'Market Open' }}
+              {{
+                loading
+                  ? "Syncing..."
+                  : error
+                  ? "Connection Error"
+                  : "Market Open"
+              }}
             </span>
           </div>
           <div v-if="error" class="error-message">
@@ -54,7 +78,9 @@
           <div class="user-info">
             <div class="balance-display">
               <div class="balance-label">Total Balance</div>
-              <div class="balance-amount">${{ userInfo.balance.toLocaleString() }}</div>
+              <div class="balance-amount">
+                ${{ userInfo.balance.toLocaleString() }}
+              </div>
             </div>
             <div class="user-avatar">
               <span>{{ userInfo.name.charAt(0) }}</span>
@@ -76,39 +102,63 @@
               <div class="time-period">Today</div>
             </div>
             <div class="card-content">
-              <div class="primary-value">${{ (userInfo.totalAssets || 0).toLocaleString() }}</div>
-              <div class="value-change" :class="{ profit: (userInfo.profitPercentage || 0) >= 0, loss: (userInfo.profitPercentage || 0) < 0 }">
-                <span class="change-amount">{{ (userInfo.profitPercentage || 0) >= 0 ? '+' : '' }}${{ Math.abs(userInfo.totalProfit || 0).toLocaleString() }}</span>
-                <span class="change-percent">({{ (userInfo.profitPercentage || 0) >= 0 ? '+' : '' }}{{ (userInfo.profitPercentage || 0).toFixed(2) }}%)</span>
+              <div class="primary-value">
+                ${{ (userInfo.totalAssets || 0).toLocaleString() }}
+              </div>
+              <div
+                class="value-change"
+                :class="{
+                  profit: (userInfo.profitPercentage || 0) >= 0,
+                  loss: (userInfo.profitPercentage || 0) < 0,
+                }"
+              >
+                <span class="change-amount"
+                  >{{ (userInfo.profitPercentage || 0) >= 0 ? "+" : "" }}${{
+                    Math.abs(userInfo.totalProfit || 0).toLocaleString()
+                  }}</span
+                >
+                <span class="change-percent"
+                  >({{ (userInfo.profitPercentage || 0) >= 0 ? "+" : ""
+                  }}{{ (userInfo.profitPercentage || 0).toFixed(2) }}%)</span
+                >
               </div>
             </div>
           </div>
-          
+
           <div class="overview-card">
             <div class="card-header">
               <h3>Available Cash</h3>
             </div>
             <div class="card-content">
-              <div class="secondary-value">${{ userInfo.balance.toLocaleString() }}</div>
+              <div class="secondary-value">
+                ${{ userInfo.balance.toLocaleString() }}
+              </div>
             </div>
           </div>
-          
+
           <div class="overview-card">
             <div class="card-header">
               <h3>Holdings Value</h3>
             </div>
             <div class="card-content">
-              <div class="secondary-value">${{ (holdingsValue || 0).toLocaleString() }}</div>
+              <div class="secondary-value">
+                ${{ (holdingsValue || 0).toLocaleString() }}
+              </div>
             </div>
           </div>
-          
+
           <div class="overview-card">
             <div class="card-header">
               <h3>Day's P&L</h3>
             </div>
             <div class="card-content">
-              <div class="secondary-value" :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }">
-                {{ todayPnL >= 0 ? '+' : '' }}${{ Math.abs(todayPnL).toLocaleString() }}
+              <div
+                class="secondary-value"
+                :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }"
+              >
+                {{ todayPnL >= 0 ? "+" : "" }}${{
+                  Math.abs(todayPnL).toLocaleString()
+                }}
               </div>
             </div>
           </div>
@@ -121,9 +171,16 @@
               <div class="chart-title">
                 <h3>Portfolio Performance</h3>
                 <div class="chart-value">
-                  <span class="current-assets">${{ totalAssets.toLocaleString() }}</span>
-                  <span class="daily-pnl" :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }">
-                    {{ todayPnL >= 0 ? '+' : '' }}${{ Math.abs(todayPnL).toLocaleString() }}
+                  <span class="current-assets"
+                    >${{ totalAssets.toLocaleString() }}</span
+                  >
+                  <span
+                    class="daily-pnl"
+                    :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }"
+                  >
+                    {{ todayPnL >= 0 ? "+" : "" }}${{
+                      Math.abs(todayPnL).toLocaleString()
+                    }}
                   </span>
                 </div>
               </div>
@@ -132,7 +189,10 @@
                   <button
                     v-for="range in timeRanges"
                     :key="range.id"
-                    :class="['time-btn', { active: selectedTimeRange === range.id }]"
+                    :class="[
+                      'time-btn',
+                      { active: selectedTimeRange === range.id },
+                    ]"
                     @click="changeTimeRange(range.id)"
                   >
                     {{ range.name }}
@@ -150,27 +210,39 @@
             <h3>My Holdings</h3>
             <div class="holdings-summary">{{ portfolio.length }} positions</div>
           </div>
-          
+
           <div class="holdings-content">
             <!-- Holdings Table (Left Side) -->
             <div class="holdings-table-container">
               <!-- Loading State -->
-              <div v-if="loading && portfolio.length === 0" class="loading-state">
+              <div
+                v-if="loading && portfolio.length === 0"
+                class="loading-state"
+              >
                 <div class="loading-spinner"></div>
                 <p>Loading your portfolio from database...</p>
               </div>
-              
+
               <!-- No Data State -->
-              <div v-else-if="!loading && portfolio.length === 0 && !error" class="empty-state">
+              <div
+                v-else-if="!loading && portfolio.length === 0 && !error"
+                class="empty-state"
+              >
                 <p>No holdings found. Start trading to build your portfolio!</p>
               </div>
-              
+
               <!-- Error State -->
-              <div v-else-if="error && portfolio.length === 0" class="error-state">
-                <p>Unable to load portfolio data. Please check your connection and try again.</p>
+              <div
+                v-else-if="error && portfolio.length === 0"
+                class="error-state"
+              >
+                <p>
+                  Unable to load portfolio data. Please check your connection
+                  and try again.
+                </p>
                 <button @click="loadAllData()" class="retry-btn">Retry</button>
               </div>
-              
+
               <!-- Holdings Table -->
               <div v-else class="holdings-table">
                 <div class="table-header">
@@ -196,22 +268,45 @@
                       <div class="company-name">{{ stock.name }}</div>
                     </div>
                     <div class="cell price">
-                      <div class="stock-price">${{ (stock.currentPrice || 0).toFixed(2) }}</div>
+                      <div class="stock-price">
+                        ${{ (stock.currentPrice || 0).toFixed(2) }}
+                      </div>
                     </div>
                     <div class="cell change">
-                      <div class="price-change" :class="{ profit: (stock.changePercent || 0) >= 0, loss: (stock.changePercent || 0) < 0 }">
-                        {{ (stock.changePercent || 0) >= 0 ? '+' : '' }}{{ (stock.changePercent || 0).toFixed(2) }}%
+                      <div
+                        class="price-change"
+                        :class="{
+                          profit: (stock.changePercent || 0) >= 0,
+                          loss: (stock.changePercent || 0) < 0,
+                        }"
+                      >
+                        {{ (stock.changePercent || 0) >= 0 ? "+" : ""
+                        }}{{ (stock.changePercent || 0).toFixed(2) }}%
                       </div>
                     </div>
                     <div class="cell shares">
                       <div class="share-count">{{ stock.shares || 0 }}</div>
                     </div>
                     <div class="cell market-value">
-                      <div class="value-amount">${{ ((stock.currentPrice || 0) * (stock.shares || 0)).toLocaleString() }}</div>
+                      <div class="value-amount">
+                        ${{
+                          (
+                            (stock.currentPrice || 0) * (stock.shares || 0)
+                          ).toLocaleString()
+                        }}
+                      </div>
                     </div>
                     <div class="cell pnl">
-                      <div class="pnl-amount" :class="{ profit: (stock.pnl || 0) >= 0, loss: (stock.pnl || 0) < 0 }">
-                        {{ (stock.pnl || 0) >= 0 ? '+' : '' }}${{ Math.abs(stock.pnl || 0).toFixed(2) }}
+                      <div
+                        class="pnl-amount"
+                        :class="{
+                          profit: (stock.pnl || 0) >= 0,
+                          loss: (stock.pnl || 0) < 0,
+                        }"
+                      >
+                        {{ (stock.pnl || 0) >= 0 ? "+" : "" }}${{
+                          Math.abs(stock.pnl || 0).toFixed(2)
+                        }}
                       </div>
                     </div>
                   </div>
@@ -250,30 +345,51 @@
             <div class="modal-content">
               <div class="stock-info-bar">
                 <div class="current-quote">
-                  <span class="quote-price">${{ selectedChartStock.currentPrice.toFixed(2) }}</span>
-                  <span class="quote-change" :class="{ profit: selectedChartStock.changePercent >= 0, loss: selectedChartStock.changePercent < 0 }">
-                    {{ selectedChartStock.changePercent >= 0 ? '+' : '' }}{{ selectedChartStock.changePercent.toFixed(2) }}%
+                  <span class="quote-price"
+                    >${{ selectedChartStock.currentPrice.toFixed(2) }}</span
+                  >
+                  <span
+                    class="quote-change"
+                    :class="{
+                      profit: selectedChartStock.changePercent >= 0,
+                      loss: selectedChartStock.changePercent < 0,
+                    }"
+                  >
+                    {{ selectedChartStock.changePercent >= 0 ? "+" : ""
+                    }}{{ selectedChartStock.changePercent.toFixed(2) }}%
                   </span>
                 </div>
                 <div class="stock-metrics">
                   <div class="metric">
                     <span class="metric-label">High</span>
-                    <span class="metric-value">${{ selectedChartStock.yearHigh }}</span>
+                    <span class="metric-value"
+                      >${{ selectedChartStock.yearHigh }}</span
+                    >
                   </div>
                   <div class="metric">
                     <span class="metric-label">Low</span>
-                    <span class="metric-value">${{ selectedChartStock.yearLow }}</span>
+                    <span class="metric-value"
+                      >${{ selectedChartStock.yearLow }}</span
+                    >
                   </div>
                   <div class="metric">
                     <span class="metric-label">Volume</span>
-                    <span class="metric-value">{{ selectedChartStock.volume }}</span>
+                    <span class="metric-value">{{
+                      selectedChartStock.volume
+                    }}</span>
                   </div>
                 </div>
                 <div class="action-buttons">
-                  <button class="action-btn buy-btn" @click="goToTrading('buy')">
+                  <button
+                    class="action-btn buy-btn"
+                    @click="goToTrading('buy')"
+                  >
                     <span>Buy</span>
                   </button>
-                  <button class="action-btn sell-btn" @click="goToTrading('sell')">
+                  <button
+                    class="action-btn sell-btn"
+                    @click="goToTrading('sell')"
+                  >
                     <span>Sell</span>
                   </button>
                 </div>
@@ -313,9 +429,18 @@
                     <span class="stock-symbol">{{ selectedStock.code }}</span>
                   </div>
                   <div class="stock-quote">
-                    <span class="current-price">${{ selectedStock.price.toFixed(2) }}</span>
-                    <span class="price-movement" :class="{ profit: selectedStock.change >= 0, loss: selectedStock.change < 0 }">
-                      {{ selectedStock.change >= 0 ? '+' : '' }}{{ selectedStock.change.toFixed(2) }}%
+                    <span class="current-price"
+                      >${{ selectedStock.price.toFixed(2) }}</span
+                    >
+                    <span
+                      class="price-movement"
+                      :class="{
+                        profit: selectedStock.change >= 0,
+                        loss: selectedStock.change < 0,
+                      }"
+                    >
+                      {{ selectedStock.change >= 0 ? "+" : ""
+                      }}{{ selectedStock.change.toFixed(2) }}%
                     </span>
                   </div>
                 </div>
@@ -325,14 +450,22 @@
                 <label class="form-label">Order Type</label>
                 <div class="trade-type-selector">
                   <button
-                    :class="['trade-type-btn', 'buy-type', { active: tradeForm.type === 'buy' }]"
+                    :class="[
+                      'trade-type-btn',
+                      'buy-type',
+                      { active: tradeForm.type === 'buy' },
+                    ]"
                     @click="tradeForm.type = 'buy'"
                   >
                     <span class="btn-icon">📈</span>
                     <span>Buy</span>
                   </button>
                   <button
-                    :class="['trade-type-btn', 'sell-type', { active: tradeForm.type === 'sell' }]"
+                    :class="[
+                      'trade-type-btn',
+                      'sell-type',
+                      { active: tradeForm.type === 'sell' },
+                    ]"
                     @click="tradeForm.type = 'sell'"
                   >
                     <span class="btn-icon">📉</span>
@@ -356,11 +489,19 @@
               <div v-if="selectedStock" class="order-summary">
                 <div class="summary-row">
                   <span>Estimated Total</span>
-                  <span class="summary-value">${{ (selectedStock.price * tradeForm.quantity).toLocaleString() }}</span>
+                  <span class="summary-value"
+                    >${{
+                      (
+                        selectedStock.price * tradeForm.quantity
+                      ).toLocaleString()
+                    }}</span
+                  >
                 </div>
                 <div v-if="tradeForm.type === 'buy'" class="summary-row">
                   <span>Available Cash</span>
-                  <span class="summary-value">${{ userInfo.balance.toLocaleString() }}</span>
+                  <span class="summary-value"
+                    >${{ userInfo.balance.toLocaleString() }}</span
+                  >
                 </div>
               </div>
 
@@ -371,7 +512,10 @@
                 :disabled="!canTrade"
               >
                 <span v-if="loading">Processing...</span>
-                <span v-else>{{ tradeForm.type === 'buy' ? 'Buy' : 'Sell' }} {{ tradeForm.quantity || 0 }} Shares</span>
+                <span v-else
+                  >{{ tradeForm.type === "buy" ? "Buy" : "Sell" }}
+                  {{ tradeForm.quantity || 0 }} Shares</span
+                >
               </button>
             </div>
           </div>
@@ -382,7 +526,9 @@
               <h3>Market Overview</h3>
               <div class="update-indicator" :class="{ active: !loading }">
                 <span class="indicator-dot"></span>
-                <span class="update-text">{{ loading ? 'Updating...' : 'Live' }}</span>
+                <span class="update-text">{{
+                  loading ? "Updating..." : "Live"
+                }}</span>
               </div>
             </div>
 
@@ -392,20 +538,41 @@
                 v-for="index in globalIndices"
                 :key="index.symbol"
                 class="index-card"
-                :class="{ profit: (index.changePercent || 0) >= 0, loss: (index.changePercent || 0) < 0 }"
+                :class="{
+                  profit: (index.changePercent || 0) >= 0,
+                  loss: (index.changePercent || 0) < 0,
+                }"
               >
                 <div class="index-header">
                   <div class="index-info">
                     <span class="index-symbol">{{ index.symbol }}</span>
-                    <span class="market-badge" :class="getMarketClass(index.symbol)">{{ getMarketCode(index.symbol) }}</span>
+                    <span
+                      class="market-badge"
+                      :class="getMarketClass(index.symbol)"
+                      >{{ getMarketCode(index.symbol) }}</span
+                    >
                   </div>
                 </div>
                 <div class="index-name">{{ index.symbol }}</div>
                 <div class="index-quote">
-                  <div class="index-value">{{ index.price?.toFixed(2) || 'Loading...' }}</div>
-                  <div class="index-change" :class="{ profit: (index.changePercent || 0) >= 0, loss: (index.changePercent || 0) < 0 }">
-                    <span class="change-percent">{{ (index.changePercent || 0) >= 0 ? '+' : '' }}{{ (index.changePercent || 0).toFixed(2) }}%</span>
-                    <span class="change-value">{{ (index.change || 0) >= 0 ? '+' : '' }}{{ (index.change || 0).toFixed(2) }}</span>
+                  <div class="index-value">
+                    {{ index.price?.toFixed(2) || "Loading..." }}
+                  </div>
+                  <div
+                    class="index-change"
+                    :class="{
+                      profit: (index.changePercent || 0) >= 0,
+                      loss: (index.changePercent || 0) < 0,
+                    }"
+                  >
+                    <span class="change-percent"
+                      >{{ (index.changePercent || 0) >= 0 ? "+" : ""
+                      }}{{ (index.changePercent || 0).toFixed(2) }}%</span
+                    >
+                    <span class="change-value"
+                      >{{ (index.change || 0) >= 0 ? "+" : ""
+                      }}{{ (index.change || 0).toFixed(2) }}</span
+                    >
                   </div>
                 </div>
               </div>
@@ -426,9 +593,10 @@
                   :key="stock.code"
                   class="stock-card"
                   @click="selectStock(stock)"
-                  :class="{ 
-                    selected: selectedStock && selectedStock.code === stock.code,
-                    updating: stock.isUpdating 
+                  :class="{
+                    selected:
+                      selectedStock && selectedStock.code === stock.code,
+                    updating: stock.isUpdating,
                   }"
                 >
                   <div class="stock-info">
@@ -437,8 +605,15 @@
                   </div>
                   <div class="stock-quote">
                     <div class="stock-price">${{ stock.price.toFixed(2) }}</div>
-                    <div class="stock-change" :class="{ profit: stock.change >= 0, loss: stock.change < 0 }">
-                      {{ stock.change >= 0 ? '+' : '' }}{{ stock.change.toFixed(2) }}%
+                    <div
+                      class="stock-change"
+                      :class="{
+                        profit: stock.change >= 0,
+                        loss: stock.change < 0,
+                      }"
+                    >
+                      {{ stock.change >= 0 ? "+" : ""
+                      }}{{ stock.change.toFixed(2) }}%
                     </div>
                   </div>
                 </div>
@@ -457,7 +632,9 @@
               <div class="user-details-modern">
                 <h2>{{ userInfo.name }}</h2>
                 <p class="user-id">ID: {{ userInfo.id }}</p>
-                <p class="join-date">Member since {{ userInfo.registerDate }}</p>
+                <p class="join-date">
+                  Member since {{ userInfo.registerDate }}
+                </p>
               </div>
               <div class="profile-stats">
                 <div class="stat-item">
@@ -475,22 +652,39 @@
               <div class="overview-grid">
                 <div class="overview-item">
                   <div class="item-label">Total Balance</div>
-                  <div class="item-value primary">${{ userInfo.balance.toLocaleString() }}</div>
+                  <div class="item-value primary">
+                    ${{ userInfo.balance.toLocaleString() }}
+                  </div>
                 </div>
                 <div class="overview-item">
                   <div class="item-label">Total Assets</div>
-                  <div class="item-value primary">${{ totalAssets.toLocaleString() }}</div>
+                  <div class="item-value primary">
+                    ${{ totalAssets.toLocaleString() }}
+                  </div>
                 </div>
                 <div class="overview-item">
                   <div class="item-label">Today's P&L</div>
-                  <div class="item-value" :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }">
-                    {{ todayPnL >= 0 ? '+' : '' }}${{ Math.abs(todayPnL).toLocaleString() }}
+                  <div
+                    class="item-value"
+                    :class="{ profit: todayPnL >= 0, loss: todayPnL < 0 }"
+                  >
+                    {{ todayPnL >= 0 ? "+" : "" }}${{
+                      Math.abs(todayPnL).toLocaleString()
+                    }}
                   </div>
                 </div>
                 <div class="overview-item">
                   <div class="item-label">Total Profit</div>
-                  <div class="item-value" :class="{ profit: userInfo.totalProfit >= 0, loss: userInfo.totalProfit < 0 }">
-                    {{ userInfo.totalProfit >= 0 ? '+' : '' }}${{ Math.abs(userInfo.totalProfit || 0).toLocaleString() }}
+                  <div
+                    class="item-value"
+                    :class="{
+                      profit: userInfo.totalProfit >= 0,
+                      loss: userInfo.totalProfit < 0,
+                    }"
+                  >
+                    {{ userInfo.totalProfit >= 0 ? "+" : "" }}${{
+                      Math.abs(userInfo.totalProfit || 0).toLocaleString()
+                    }}
                   </div>
                 </div>
               </div>
@@ -499,7 +693,9 @@
             <div class="trading-history-modern">
               <div class="history-header">
                 <h4>Recent Transactions</h4>
-                <span class="history-count">{{ tradingHistory.length }} records</span>
+                <span class="history-count"
+                  >{{ tradingHistory.length }} records</span
+                >
               </div>
               <div class="history-list-modern">
                 <div
@@ -513,14 +709,16 @@
                   </div>
                   <div class="transaction-details">
                     <div class="transaction-type" :class="record.type">
-                      {{ record.type === 'buy' ? 'BUY' : 'SELL' }}
+                      {{ record.type === "buy" ? "BUY" : "SELL" }}
                     </div>
                     <div class="transaction-amount">
                       {{ record.quantity }} × ${{ record.price.toFixed(2) }}
                     </div>
                   </div>
                   <div class="transaction-meta">
-                    <div class="transaction-total">${{ (record.quantity * record.price).toLocaleString() }}</div>
+                    <div class="transaction-total">
+                      ${{ (record.quantity * record.price).toLocaleString() }}
+                    </div>
                     <div class="transaction-date">{{ record.date }}</div>
                   </div>
                 </div>
@@ -546,24 +744,96 @@ export default {
       error: null,
       lastUpdateTime: null,
       isDarkMode: false,
-      
+
       // Global indices rotation
       currentTickerIndex: 0,
       tickerRotationInterval: null,
       globalIndicesUpdateInterval: null,
       globalIndices: [
-        { symbol: 'S&P 500', code: 'SPY', price: null, change: null, changePercent: null },
-        { symbol: 'NASDAQ', code: 'QQQ', price: null, change: null, changePercent: null },
-        { symbol: 'DOW', code: 'DIA', price: null, change: null, changePercent: null },
-        { symbol: 'FTSE 100', code: 'ISF.L', price: null, change: null, changePercent: null },
-        { symbol: 'DAX', code: 'DAX', price: null, change: null, changePercent: null },
-        { symbol: 'CAC 40', code: 'CAC', price: null, change: null, changePercent: null },
-        { symbol: 'Nikkei', code: 'N225', price: null, change: null, changePercent: null },
-        { symbol: 'Hang Seng', code: 'HSI', price: null, change: null, changePercent: null },
-        { symbol: 'Shanghai', code: 'SSEC', price: null, change: null, changePercent: null },
-        { symbol: 'ASX 200', code: 'XJO.AX', price: null, change: null, changePercent: null },
-        { symbol: 'TSX', code: 'GSPTSE', price: null, change: null, changePercent: null },
-        { symbol: 'BSE Sensex', code: 'SENSEX', price: null, change: null, changePercent: null }
+        {
+          symbol: "S&P 500",
+          code: "SPY",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "NASDAQ",
+          code: "QQQ",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "DOW",
+          code: "DIA",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "FTSE 100",
+          code: "ISF.L",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "DAX",
+          code: "DAX",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "CAC 40",
+          code: "CAC",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "Nikkei",
+          code: "N225",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "Hang Seng",
+          code: "HSI",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "Shanghai",
+          code: "SSEC",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "ASX 200",
+          code: "XJO.AX",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "TSX",
+          code: "GSPTSE",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
+        {
+          symbol: "BSE Sensex",
+          code: "SENSEX",
+          price: null,
+          change: null,
+          changePercent: null,
+        },
       ],
 
       activeTab: "portfolio",
@@ -636,7 +906,7 @@ export default {
         // { id: 'custom', name: 'Custom', days: 0 }
       ],
       tradingHistory: [],
-      
+
       // 热门股票数据（从后端获取）
       popularStocks: [],
       popularStocksUpdateInterval: null,
@@ -669,29 +939,43 @@ export default {
     },
     portfolioComposition() {
       if (!this.portfolio || this.portfolio.length === 0) return [];
-      
+
       const totalValue = this.holdingsValue;
       if (totalValue === 0) return [];
-      
+
       // Color palette for the pie chart
       const colors = [
-        '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-        '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#14b8a6',
-        '#6366f1', '#eab308', '#f43f5e', '#22c55e', '#a855f7'
+        "#3b82f6",
+        "#ef4444",
+        "#10b981",
+        "#f59e0b",
+        "#8b5cf6",
+        "#06b6d4",
+        "#84cc16",
+        "#f97316",
+        "#ec4899",
+        "#14b8a6",
+        "#6366f1",
+        "#eab308",
+        "#f43f5e",
+        "#22c55e",
+        "#a855f7",
       ];
-      
-      return this.portfolio.map((stock, index) => {
-        const marketValue = (stock.currentPrice || 0) * (stock.shares || 0);
-        const percentage = (marketValue / totalValue) * 100;
-        
-        return {
-          code: stock.code,
-          name: stock.name,
-          value: marketValue,
-          percentage: percentage,
-          color: colors[index % colors.length]
-        };
-      }).sort((a, b) => b.value - a.value); // Sort by value descending
+
+      return this.portfolio
+        .map((stock, index) => {
+          const marketValue = (stock.currentPrice || 0) * (stock.shares || 0);
+          const percentage = (marketValue / totalValue) * 100;
+
+          return {
+            code: stock.code,
+            name: stock.name,
+            value: marketValue,
+            percentage: percentage,
+            color: colors[index % colors.length],
+          };
+        })
+        .sort((a, b) => b.value - a.value); // Sort by value descending
     },
     canTrade() {
       if (!this.selectedStock || !this.tradeForm.quantity) return false;
@@ -713,24 +997,25 @@ export default {
     // Get tab icons
     getTabIcon(tabId) {
       const icons = {
-        portfolio: '💼',
-        trading: '📊',
-        profile: '👤'
+        portfolio: "💼",
+        trading: "📊",
+        profile: "👤",
       };
-      return icons[tabId] || '📄';
+      return icons[tabId] || "📄";
     },
 
     // Toggle theme
     toggleTheme() {
       this.isDarkMode = !this.isDarkMode;
-      localStorage.setItem('darkMode', this.isDarkMode);
+      localStorage.setItem("darkMode", this.isDarkMode);
     },
 
     // Global indices rotation methods
     startTickerRotation() {
       // Rotate every 3 seconds
       this.tickerRotationInterval = setInterval(() => {
-        this.currentTickerIndex = (this.currentTickerIndex + 1) % this.globalIndices.length;
+        this.currentTickerIndex =
+          (this.currentTickerIndex + 1) % this.globalIndices.length;
       }, 3000);
     },
 
@@ -744,26 +1029,30 @@ export default {
     async fetchGlobalIndices() {
       try {
         console.log("[API] Fetching global indices data...");
-        
+
         // Use Promise.allSettled to fetch all indices in parallel
-        const promises = this.globalIndices.map(index => this.fetchSingleIndexData(index));
+        const promises = this.globalIndices.map((index) =>
+          this.fetchSingleIndexData(index)
+        );
         const results = await Promise.allSettled(promises);
-        
+
         // Update the indices with fetched data
         results.forEach((result, index) => {
-          if (result.status === 'fulfilled' && result.value) {
+          if (result.status === "fulfilled" && result.value) {
             Object.assign(this.globalIndices[index], result.value);
           } else {
             // Fallback to simulated data if API fails
             this.simulateGlobalIndexData(this.globalIndices[index]);
           }
         });
-        
+
         console.log("[API] Global indices updated:", this.globalIndices);
       } catch (error) {
         console.error("[API] Error fetching global indices:", error);
         // Use simulated data as fallback
-        this.globalIndices.forEach(index => this.simulateGlobalIndexData(index));
+        this.globalIndices.forEach((index) =>
+          this.simulateGlobalIndexData(index)
+        );
       }
     },
 
@@ -773,63 +1062,64 @@ export default {
         const response = await fetch(
           `https://query1.finance.yahoo.com/v8/finance/chart/${index.code}?interval=1d&range=2d`,
           {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-            }
+              "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            },
           }
         );
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.chart?.result?.[0]) {
           const result = data.chart.result[0];
           const meta = result.meta;
           const quotes = result.indicators?.quote?.[0];
-          
+
           if (meta && quotes) {
             const currentPrice = meta.regularMarketPrice || meta.previousClose;
             const previousClose = meta.previousClose || meta.chartPreviousClose;
             const change = currentPrice - previousClose;
             const changePercent = (change / previousClose) * 100;
-            
+
             return {
               price: currentPrice,
               change: change,
-              changePercent: changePercent
+              changePercent: changePercent,
             };
           }
         }
-        
-        throw new Error('Invalid data format');
+
+        throw new Error("Invalid data format");
       } catch (error) {
         console.warn(`Failed to fetch data for ${index.symbol}:`, error);
-        
+
         // Try alternative API endpoint
         try {
           const altResponse = await fetch(
             `https://api.twelvedata.com/quote?symbol=${index.code}&apikey=demo`,
             { timeout: 5000 }
           );
-          
+
           if (altResponse.ok) {
             const altData = await altResponse.json();
             if (altData.price && altData.percent_change) {
               return {
                 price: parseFloat(altData.price),
                 change: parseFloat(altData.change),
-                changePercent: parseFloat(altData.percent_change)
+                changePercent: parseFloat(altData.percent_change),
               };
             }
           }
         } catch (altError) {
           console.warn(`Alternative API also failed for ${index.symbol}`);
         }
-        
+
         return null;
       }
     },
@@ -841,7 +1131,7 @@ export default {
       const newPrice = basePrice * (1 + randomChange);
       const change = newPrice - basePrice;
       const changePercent = (change / basePrice) * 100;
-      
+
       index.price = parseFloat(newPrice.toFixed(2));
       index.change = parseFloat(change.toFixed(2));
       index.changePercent = parseFloat(changePercent.toFixed(2));
@@ -850,18 +1140,18 @@ export default {
     getBasePrice(symbol) {
       // Realistic base prices for different indices
       const basePrices = {
-        'S&P 500': 4500,
-        'NASDAQ': 370,
-        'DOW': 350,
-        'FTSE 100': 7500,
-        'DAX': 16000,
-        'CAC 40': 7200,
-        'Nikkei': 33000,
-        'Hang Seng': 17500,
-        'Shanghai': 3100,
-        'ASX 200': 7400,
-        'TSX': 21000,
-        'BSE Sensex': 65000
+        "S&P 500": 4500,
+        NASDAQ: 370,
+        DOW: 350,
+        "FTSE 100": 7500,
+        DAX: 16000,
+        "CAC 40": 7200,
+        Nikkei: 33000,
+        "Hang Seng": 17500,
+        Shanghai: 3100,
+        "ASX 200": 7400,
+        TSX: 21000,
+        "BSE Sensex": 65000,
       };
       return basePrices[symbol] || 1000;
     },
@@ -869,7 +1159,7 @@ export default {
     startGlobalIndicesUpdates() {
       // Initial fetch
       this.fetchGlobalIndices();
-      
+
       // Update every 10 seconds
       this.globalIndicesUpdateInterval = setInterval(() => {
         this.fetchGlobalIndices();
@@ -888,30 +1178,38 @@ export default {
       // 随机选择1-3只股票进行更新
       const numToUpdate = Math.floor(Math.random() * 3) + 5; // 1-3只
       const indicesToUpdate = [];
-      
+
       // 随机选择要更新的股票索引
       while (indicesToUpdate.length < numToUpdate) {
-        const randomIndex = Math.floor(Math.random() * this.popularStocks.length);
+        const randomIndex = Math.floor(
+          Math.random() * this.popularStocks.length
+        );
         if (!indicesToUpdate.includes(randomIndex)) {
           indicesToUpdate.push(randomIndex);
         }
       }
 
       // 更新选中的股票
-      indicesToUpdate.forEach(index => {
+      indicesToUpdate.forEach((index) => {
         const stock = this.popularStocks[index];
-        
+
         // 生成更真实的价格变化（-0.5% 到 +0.5%）
         const priceChangePercent = (Math.random() - 0.5) * 1; // -0.5% 到 +0.5%
         const priceChange = stock.price * (priceChangePercent / 100);
-        
+
         // 更新价格，保留两位小数
-        stock.price = Math.max(0.01, parseFloat((stock.price + priceChange).toFixed(2)));
-        
+        stock.price = Math.max(
+          0.01,
+          parseFloat((stock.price + priceChange).toFixed(2))
+        );
+
         // 生成更真实的涨跌幅变化（-0.3% 到 +0.3%）
         const changeVariation = (Math.random() - 0.5) * 0.6; // -0.3% 到 +0.3%
-        stock.change = Math.max(-5, Math.min(5, parseFloat((stock.change + changeVariation).toFixed(2)))); // 限制在-5%到+5%之间
-        
+        stock.change = Math.max(
+          -5,
+          Math.min(5, parseFloat((stock.change + changeVariation).toFixed(2)))
+        ); // 限制在-5%到+5%之间
+
         // 添加动画效果
         stock.isUpdating = true;
         setTimeout(() => {
@@ -929,10 +1227,10 @@ export default {
         console.log("[Popular Stocks] No data available, skipping updates");
         return;
       }
-      
+
       // 立即更新一次
       this.updatePopularStocks();
-      
+
       // 使用递归的setTimeout来实现随机间隔
       const scheduleNextUpdate = () => {
         const randomDelay = Math.random() * 4000 + 2000; // 2-6秒随机间隔
@@ -941,7 +1239,7 @@ export default {
           scheduleNextUpdate(); // 递归调用，安排下一次更新
         }, randomDelay);
       };
-      
+
       scheduleNextUpdate();
     },
 
@@ -963,20 +1261,20 @@ export default {
     // 获取市场代码
     getMarketCode(symbol) {
       const marketMap = {
-        'S&P 500': 'US',
-        'NASDAQ': 'US', 
-        'DOW': 'US',
-        'FTSE 100': 'UK',
-        'DAX': 'DE',
-        'CAC 40': 'FR',
-        'Nikkei': 'JP',
-        'Hang Seng': 'HK',
-        'Shanghai': 'CN',
-        'ASX 200': 'AU',
-        'TSX': 'CA',
-        'BSE Sensex': 'IN'
+        "S&P 500": "US",
+        NASDAQ: "US",
+        DOW: "US",
+        "FTSE 100": "UK",
+        DAX: "DE",
+        "CAC 40": "FR",
+        Nikkei: "JP",
+        "Hang Seng": "HK",
+        Shanghai: "CN",
+        "ASX 200": "AU",
+        TSX: "CA",
+        "BSE Sensex": "IN",
       };
-      return marketMap[symbol] || 'US';
+      return marketMap[symbol] || "US";
     },
 
     // 获取市场样式类
@@ -988,11 +1286,14 @@ export default {
     // API数据获取方法
     async fetchAccountInfo() {
       try {
-        console.log("[API] Fetching account info from:", `${this.API_BASE_URL}/account`);
+        console.log(
+          "[API] Fetching account info from:",
+          `${this.API_BASE_URL}/account`
+        );
         const response = await fetch(`${this.API_BASE_URL}/account`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
+
         console.log("[API] Account data received:", data);
 
         // 更新用户信息
@@ -1005,7 +1306,7 @@ export default {
         console.log("[API] 账户信息已更新:", {
           balance: this.userInfo.balance,
           totalAssets: this.userInfo.totalAssets,
-          totalProfit: this.userInfo.totalProfit
+          totalProfit: this.userInfo.totalProfit,
         });
       } catch (err) {
         console.error("[API] 获取账户信息失败:", err);
@@ -1016,11 +1317,14 @@ export default {
 
     async fetchPortfolio() {
       try {
-        console.log("[API] Fetching portfolio from:", `${this.API_BASE_URL}/portfolio`);
+        console.log(
+          "[API] Fetching portfolio from:",
+          `${this.API_BASE_URL}/portfolio`
+        );
         const response = await fetch(`${this.API_BASE_URL}/portfolio`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
+
         console.log("[API] Portfolio data received:", data);
 
         // 转换后端数据格式为前端格式
@@ -1038,7 +1342,7 @@ export default {
         }));
 
         console.log("[API] 持仓信息已更新:", this.portfolio);
-        
+
         // Update pie chart when portfolio data changes
         this.$nextTick(() => {
           this.initPortfoliePieChart();
@@ -1052,11 +1356,14 @@ export default {
 
     async fetchMarketData() {
       try {
-        console.log("[API] Fetching market data from:", `${this.API_BASE_URL}/market`);
+        console.log(
+          "[API] Fetching market data from:",
+          `${this.API_BASE_URL}/market`
+        );
         const response = await fetch(`${this.API_BASE_URL}/market`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
+
         console.log("[API] Market data received:", data);
 
         // 转换后端数据格式为前端格式
@@ -1073,7 +1380,7 @@ export default {
           name: stock.name || "Unknown",
           price: Number(stock.currentPrice) || 0,
           change: Number(stock.changePercentage) || 0,
-          isUpdating: false
+          isUpdating: false,
         }));
 
         console.log("[API] 市场数据已更新:", this.availableStocks);
@@ -1088,7 +1395,7 @@ export default {
     async loadAllData() {
       this.loading = true;
       this.error = null;
-      
+
       console.log("[API] Starting to load all data from backend...");
       console.log("[API] API Base URL:", this.API_BASE_URL);
 
@@ -1100,13 +1407,17 @@ export default {
           this.fetchTradingHistory(),
         ]);
         this.lastUpdateTime = new Date();
-        console.log("[API] All data loaded successfully at:", this.lastUpdateTime.toLocaleTimeString());
-        
+        console.log(
+          "[API] All data loaded successfully at:",
+          this.lastUpdateTime.toLocaleTimeString()
+        );
+
         // 数据加载完成后启动热门股票更新
         this.startPopularStocksUpdates();
       } catch (err) {
         console.error("[API] 加载数据失败:", err);
-        this.error = "Failed to load data from backend. Please check if the backend server is running.";
+        this.error =
+          "Failed to load data from backend. Please check if the backend server is running.";
       } finally {
         this.loading = false;
       }
@@ -1120,23 +1431,25 @@ export default {
         if (response.ok) {
           const data = await response.json();
           console.log("[API] Trading history data received:", data);
-          
+
           // Transform the data to match our UI format
           this.tradingHistory = (data.trades || []).map((trade, index) => ({
             id: trade.id || index + 1,
             stockCode: trade.ticker || trade.symbol || "",
             stockName: trade.stockName || trade.name || "Unknown",
-            type: trade.type || (trade.action === 'BUY' ? 'buy' : 'sell'),
+            type: trade.type || (trade.action === "BUY" ? "buy" : "sell"),
             quantity: Number(trade.quantity) || 0,
             price: Number(trade.price) || 0,
             date: trade.timestamp || trade.date || new Date().toISOString(),
           }));
-          
+
           console.log("[API] Trading history updated:", this.tradingHistory);
         } else {
           // If trading history endpoint doesn't exist, try to get it from account info
-          console.log("[API] No dedicated trading history endpoint, checking account info...");
-          
+          console.log(
+            "[API] No dedicated trading history endpoint, checking account info..."
+          );
+
           // For now, we'll use mock data as fallback since the backend might not have this endpoint yet
           if (this.tradingHistory.length === 0) {
             this.tradingHistory = [
@@ -1151,7 +1464,7 @@ export default {
               },
               {
                 id: 2,
-                stockCode: "000858", 
+                stockCode: "000858",
                 stockName: "Wuliangye",
                 type: "buy",
                 quantity: 200,
@@ -1161,7 +1474,7 @@ export default {
               {
                 id: 3,
                 stockCode: "000002",
-                stockName: "China Vanke", 
+                stockName: "China Vanke",
                 type: "sell",
                 quantity: 500,
                 price: 9.1,
@@ -1183,8 +1496,8 @@ export default {
               type: "buy",
               quantity: 100,
               price: 50.0,
-              date: new Date().toISOString().slice(0, 16).replace('T', ' '),
-            }
+              date: new Date().toISOString().slice(0, 16).replace("T", " "),
+            },
           ];
         }
       }
@@ -1192,12 +1505,13 @@ export default {
 
     async executeTradeAPI(tradeData) {
       try {
-        const endpoint = tradeData.type === "buy" ? "/trade/buy" : "/trade/sell";
+        const endpoint =
+          tradeData.type === "buy" ? "/trade/buy" : "/trade/sell";
         const url = `${this.API_BASE_URL}${endpoint}`;
-        
+
         console.log("[API] Executing trade:", tradeData);
         console.log("[API] Trade endpoint:", url);
-        
+
         const response = await fetch(url, {
           method: "POST",
           headers: {
@@ -1562,29 +1876,35 @@ export default {
 
     // Portfolio Pie Chart initialization
     initPortfoliePieChart() {
-      if (!this.$refs.portfolioPieChartRef || this.portfolioComposition.length === 0) return;
+      if (
+        !this.$refs.portfolioPieChartRef ||
+        this.portfolioComposition.length === 0
+      )
+        return;
 
       if (this.portfoliePieChartInstance) {
         this.portfoliePieChartInstance.dispose();
       }
 
-      this.portfoliePieChartInstance = echarts.init(this.$refs.portfolioPieChartRef);
+      this.portfoliePieChartInstance = echarts.init(
+        this.$refs.portfolioPieChartRef
+      );
 
-      const pieData = this.portfolioComposition.map(stock => ({
+      const pieData = this.portfolioComposition.map((stock) => ({
         name: stock.code,
         value: stock.value,
         itemStyle: {
-          color: stock.color
-        }
+          color: stock.color,
+        },
       }));
 
       const option = {
         tooltip: {
-          trigger: 'item',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          borderColor: 'transparent',
+          trigger: "item",
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          borderColor: "transparent",
           textStyle: {
-            color: '#fff',
+            color: "#fff",
             fontSize: 12,
           },
           formatter: function (params) {
@@ -1598,27 +1918,29 @@ export default {
                 <div>Percentage: ${params.percent}%</div>
               </div>
             `;
-          }
+          },
         },
-        series: [{
-          type: 'pie',
-          radius: ['45%', '70%'],
-          center: ['50%', '50%'],
-          data: pieData,
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
+        series: [
+          {
+            type: "pie",
+            radius: ["45%", "70%"],
+            center: ["50%", "50%"],
+            data: pieData,
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+            label: {
+              show: false,
+            },
+            labelLine: {
+              show: false,
+            },
           },
-          label: {
-            show: false
-          },
-          labelLine: {
-            show: false
-          }
-        }]
+        ],
       };
 
       this.portfoliePieChartInstance.setOption(option);
@@ -1808,7 +2130,7 @@ export default {
 
   mounted() {
     // Initialize theme from localStorage
-    const savedTheme = localStorage.getItem('darkMode');
+    const savedTheme = localStorage.getItem("darkMode");
     if (savedTheme !== null) {
       this.isDarkMode = JSON.parse(savedTheme);
     }
@@ -1823,7 +2145,7 @@ export default {
 
     // 启动实时数据更新
     this.startRealTimeUpdates();
-    
+
     // Start global indices rotation and updates
     this.startTickerRotation();
     this.startGlobalIndicesUpdates();
@@ -1845,11 +2167,11 @@ export default {
 
     // 清理定时器
     this.stopRealTimeUpdates();
-    
+
     // Stop global indices updates and rotation
     this.stopTickerRotation();
     this.stopGlobalIndicesUpdates();
-    
+
     // Stop popular stocks updates
     this.stopPopularStocksUpdates();
   },
@@ -1861,7 +2183,7 @@ export default {
   /* Dark mode colors (default) */
   --bg-primary: #000000;
   --bg-secondary: #1a1a1a;
-  --bg-card: #1a1a1a; 
+  --bg-card: #1a1a1a;
   --bg-header: #1a1a1a;
   --bg-sidebar: #1a1a1a;
   --text-primary: #ffffff;
@@ -1896,7 +2218,8 @@ export default {
 .futu-trading-app {
   min-height: 100vh;
   background: var(--bg-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -2008,8 +2331,8 @@ export default {
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
+  justify-content: space-around;
+  padding: 0;
   opacity: 0;
   transform: translateY(10px);
   transition: all 0.4s ease-in-out;
@@ -2079,8 +2402,13 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .user-info {
@@ -2302,7 +2630,9 @@ export default {
 }
 
 /* Loading, Empty, and Error States */
-.loading-state, .empty-state, .error-state {
+.loading-state,
+.empty-state,
+.error-state {
   padding: 40px 24px;
   text-align: center;
   color: var(--text-muted);
@@ -2319,8 +2649,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .retry-btn {
@@ -2454,20 +2788,24 @@ export default {
   font-size: 13px;
 }
 
-.stock-price, .value-amount {
+.stock-price,
+.value-amount {
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.price-change, .pnl-amount {
+.price-change,
+.pnl-amount {
   font-weight: 500;
 }
 
-.price-change.profit, .pnl-amount.profit {
+.price-change.profit,
+.pnl-amount.profit {
   color: var(--accent-green);
 }
 
-.price-change.loss, .pnl-amount.loss {
+.price-change.loss,
+.pnl-amount.loss {
   color: var(--accent-red);
 }
 
@@ -2511,7 +2849,7 @@ export default {
   background: var(--bg-secondary);
 }
 
-.modal-title h2 {            
+.modal-title h2 {
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 4px 0;
@@ -2733,7 +3071,8 @@ export default {
   gap: 24px;
 }
 
-.trading-panel, .market-panel {
+.trading-panel,
+.market-panel {
   background: white;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
@@ -3181,15 +3520,18 @@ export default {
   }
   25% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 3px 6px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3),
+      0 3px 6px rgba(59, 130, 246, 0.2);
   }
   50% {
     transform: scale(1.08);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 4px 8px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4),
+      0 4px 8px rgba(59, 130, 246, 0.4);
   }
   75% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3), 0 3px 6px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3),
+      0 3px 6px rgba(59, 130, 246, 0.2);
   }
   100% {
     transform: scale(1);
@@ -3282,7 +3624,8 @@ export default {
   margin: 0 0 8px 0;
 }
 
-.user-id, .join-date {
+.user-id,
+.join-date {
   margin: 4px 0;
   opacity: 0.9;
   font-size: 14px;
@@ -3462,12 +3805,13 @@ export default {
   .trading-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .overview-section {
     grid-template-columns: 1fr 1fr;
   }
-  
-  .table-header, .table-row {
+
+  .table-header,
+  .table-row {
     grid-template-columns: 80px 1fr 80px 80px 60px 100px 80px;
   }
 }
@@ -3476,89 +3820,90 @@ export default {
   .header-container {
     padding: 0 16px;
   }
-  
+
   .header-right {
     flex-direction: column;
     gap: 8px;
     align-items: flex-end;
   }
-  
+
   .global-indices-ticker {
     min-width: 150px;
     height: 28px;
   }
-  
+
   .ticker-item {
-    padding: 0 8px;
+    padding: 0;
     font-size: 11px;
   }
-  
+
   .main-container {
     padding: 16px;
   }
-  
+
   .overview-section {
     grid-template-columns: 1fr;
   }
-  
-  .table-header, .table-row {
+
+  .table-header,
+  .table-row {
     grid-template-columns: repeat(4, 1fr);
   }
-  
-  .header-cell:nth-child(n+5), 
-  .cell:nth-child(n+5) {
+
+  .header-cell:nth-child(n + 5),
+  .cell:nth-child(n + 5) {
     display: none;
   }
-  
+
   .holdings-content {
     flex-direction: column;
     gap: 0;
   }
-  
+
   .pie-chart-container {
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border-color);
   }
-  
+
   .pie-chart {
     height: 200px;
   }
-  
+
   .indices-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stocks-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .profile-header-modern {
     flex-direction: column;
     text-align: center;
     gap: 16px;
   }
-  
+
   .overview-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .chart-modal {
     width: 95%;
     height: 90%;
   }
-  
+
   .modal-header {
     padding: 16px 20px;
   }
-  
+
   .stock-info-bar {
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
     padding: 16px 20px;
   }
-  
+
   .modal-chart {
     padding: 16px 20px;
   }
@@ -3568,32 +3913,32 @@ export default {
   .header-left {
     gap: 16px;
   }
-  
+
   .main-nav {
     gap: 2px;
   }
-  
+
   .nav-item {
     padding: 6px 8px;
     font-size: 12px;
   }
-  
+
   .nav-text {
     display: none;
   }
-  
+
   .balance-amount {
     font-size: 14px;
   }
-  
+
   .primary-value {
     font-size: 24px;
   }
-  
+
   .secondary-value {
     font-size: 18px;
   }
-  
+
   .overview-grid {
     grid-template-columns: 1fr;
   }
@@ -3623,7 +3968,8 @@ export default {
 
 /* Theme transition animations */
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Scrollbar theming */
